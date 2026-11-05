@@ -62,7 +62,7 @@
 .carp-model-tag b{display:block;color:#f4c67d;font-size:12px;letter-spacing:.8px}
 .carp-model-tag span{display:block;color:#e6ded0;font-size:10px;margin-top:4px}
 .app.is-fighting .carp-preview-btn{display:none}
-</style><body><main class="app" id="app"><canvas id="scene" aria-label="Animowana scena 3D — jezioro, wędka, kołowrotek i spławik"></canvas><div class="tint"></div><div class="top"><div><div class="brand">CarpRide<span>Club</span></div><div class="subtitle">FISHING 3D • V2.6.1</div></div><div class="chip">HOL 3D · TEST</div></div><div class="hero"><strong id="headline">Gotowy do zarzucenia</strong><small id="detail">Zarzuć zestaw i poczekaj na branie</small></div><div class="castProgress" id="progress"><div id="progressInner"></div></div><div class="credit">WĘDKA + KOŁOWROTEK 3D · BEZ RĄK</div><div class="controls">
+</style><body><main class="app" id="app"><canvas id="scene" aria-label="Animowana scena 3D — jezioro, wędka, kołowrotek i spławik"></canvas><div class="tint"></div><div class="top"><div><div class="brand">CarpRide<span>Club</span></div><div class="subtitle">FISHING 3D • V2.7.0</div></div><div class="chip">HOL 3D · TEST</div></div><div class="hero"><strong id="headline">Gotowy do zarzucenia</strong><small id="detail">Zarzuć zestaw i poczekaj na branie</small></div><div class="castProgress" id="progress"><div id="progressInner"></div></div><div class="credit">WĘDKA + KOŁOWROTEK 3D · BEZ RĄK</div><div class="controls">
 <div class="biteHud" id="biteHud" hidden><strong>BRANIE! ZACINAJ!</strong><div class="countdown"><span id="biteFill"></span></div><small>Masz 1 sekundę na reakcję</small></div>
 <div class="fightHud" id="fightHud" hidden>
  <div class="hudTitles"><b>NAPIĘCIE ŻYŁKI</b><span id="tensionVal">38%</span></div>
@@ -92,7 +92,7 @@ const cross=(a,b)=>[a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]]
 const mul=(a,b)=>{let out=new Float32Array(16);for(let c=0;c<4;c++)for(let r=0;r<4;r++)for(let k=0;k<4;k++)out[c*4+r]+=a[k*4+r]*b[c*4+k];return out;};
 function lookAt(eye,t){let z=unit(sub(eye,t)),x=unit(cross([0,1,0],z)),y=cross(z,x);return new Float32Array([x[0],y[0],z[0],0,x[1],y[1],z[1],0,x[2],y[2],z[2],0,-dot(x,eye),-dot(y,eye),-dot(z,eye),1]);}
 function perspective(fov,aspect,near,far){const k=1/Math.tan(fov/2);return new Float32Array([k/aspect,0,0,0,0,k,0,0,0,0,(far+near)/(near-far),-1,0,0,2*near*far/(near-far),0]);}
-const VS=`attribute vec3 aP,aN,aC,aE;attribute float aG;uniform mat4 uVP;uniform float uBend,uSide,uRoot,uCrank,uRotor,uTime,uRigRoll,uRigTilt,uRigAzimuth;uniform vec3 uFloat,uFishPos;uniform vec2 uFishDir;uniform float uFishBreach,uFishScale,uFishTail,uFishJump,uCarpPreview,uCarpTailOnly,uCarpShowScale;uniform vec3 uCarpCenter;uniform vec2 uCarpShowDir;varying vec3 vCarpLocal,vCarpLocalNormal;varying vec3 vP,vN,vC,vE;varying float vG;
+const VS=`attribute vec3 aP,aN,aC,aE;attribute float aG;uniform mat4 uVP;uniform float uBend,uSide,uRoot,uCrank,uRotor,uTime,uRigRoll,uRigTilt,uRigAzimuth;uniform vec3 uFloat,uFishPos;uniform vec2 uFishDir;uniform float uFishBreach,uFishScale,uFishTail,uFishJump,uCarpPreview,uCarpTailOnly,uCarpShowScale,uCarpTailLift,uCarpTailSwing;uniform vec3 uCarpCenter,uCarpTailAnchor;uniform vec2 uCarpShowDir,uCarpTailFacing;varying vec3 vCarpLocal,vCarpLocalNormal;varying vec3 vP,vN,vC,vE;varying float vG;
 mat2 rot(float a){return mat2(cos(a),sin(a),-sin(a),cos(a));}
 // Rotation about the *longitudinal* axis of the rod. Positive roll rotates
 // +Z (reel foot and underside guide rings) towards the POV camera.
@@ -121,9 +121,17 @@ if(grp>9.5&&grp<12.5){
   float sway=sin(uTime*3.05+max(0.,-p.x)*.63)*(.14+.13*uCarpTailOnly);
   float flex=pow(clamp((.30-p.x)/2.20,0.,1.),1.65);
   p.z+=sway*flex;
-  if(uCarpTailOnly>.5) p.y+=.22+.16*sin(uTime*5.5);
-  vec2 direction=uCarpPreview>.5 ? uCarpShowDir : uFishDir;
-  vec3 origin=uCarpPreview>.5 ? uCarpCenter : uFishPos;
+  if(uCarpTailOnly>.5){
+    // One or two irregular tail slaps: submerged on entry and exit.
+    p.y+=.18+.72*uCarpTailLift;
+    p.z+=uCarpTailSwing*(.24+.32*clamp((-p.x-1.55)/.75,0.,1.));
+    p.x+=.12*uCarpTailLift;
+  }
+  vec2 direction=uCarpTailOnly>.5 ? uCarpTailFacing : (uCarpPreview>.5 ? uCarpShowDir : uFishDir);
+  vec3 origin=uCarpTailOnly>.5 ? uCarpTailAnchor : (uCarpPreview>.5 ? uCarpCenter : uFishPos);
+  // The *same 3D caudal mesh* is shown edge-free from shore; its attachment
+  // point stays at the actual fish's tail, without exposing the body.
+  if(uCarpTailOnly>.5){p.x=(p.x+1.90)*1.28;p.y*=1.06;}
   float size=uCarpPreview>.5 ? uCarpShowScale : uFishScale;
   float dx=direction.x,dz=direction.y;
   p=vec3(origin.x+size*(dx*p.x-dz*p.z),origin.y+size*p.y,origin.z+size*(dz*p.x+dx*p.z));
@@ -163,7 +171,7 @@ if(vG>11.5&&vG<12.5){
  color=clamp(vC*(.72+.42*d+.16*fill)+vec3(.3,.24,.13)*sp*.11,0.,1.);
 }
 gl_FragColor=vec4(color,1.);}`;
-const pModel=program(VS,FS),mLoc={p:gl.getAttribLocation(pModel,'aP'),n:gl.getAttribLocation(pModel,'aN'),c:gl.getAttribLocation(pModel,'aC'),e:gl.getAttribLocation(pModel,'aE'),g:gl.getAttribLocation(pModel,'aG'),vp:gl.getUniformLocation(pModel,'uVP'),bend:gl.getUniformLocation(pModel,'uBend'),side:gl.getUniformLocation(pModel,'uSide'),root:gl.getUniformLocation(pModel,'uRoot'),rigRoll:gl.getUniformLocation(pModel,'uRigRoll'),rigTilt:gl.getUniformLocation(pModel,'uRigTilt'),rigAzimuth:gl.getUniformLocation(pModel,'uRigAzimuth'),crank:gl.getUniformLocation(pModel,'uCrank'),rotor:gl.getUniformLocation(pModel,'uRotor'),eye:gl.getUniformLocation(pModel,'uEye'),time:gl.getUniformLocation(pModel,'uTime'),float:gl.getUniformLocation(pModel,'uFloat'),fishPos:gl.getUniformLocation(pModel,'uFishPos'),fishDir:gl.getUniformLocation(pModel,'uFishDir'),fishBreach:gl.getUniformLocation(pModel,'uFishBreach'),fishScale:gl.getUniformLocation(pModel,'uFishScale'),fishTail:gl.getUniformLocation(pModel,'uFishTail'),fishJump:gl.getUniformLocation(pModel,'uFishJump'),carpPreview:gl.getUniformLocation(pModel,'uCarpPreview'),carpTailOnly:gl.getUniformLocation(pModel,'uCarpTailOnly'),carpShowScale:gl.getUniformLocation(pModel,'uCarpShowScale'),carpCenter:gl.getUniformLocation(pModel,'uCarpCenter'),carpShowDir:gl.getUniformLocation(pModel,'uCarpShowDir')};
+const pModel=program(VS,FS),mLoc={p:gl.getAttribLocation(pModel,'aP'),n:gl.getAttribLocation(pModel,'aN'),c:gl.getAttribLocation(pModel,'aC'),e:gl.getAttribLocation(pModel,'aE'),g:gl.getAttribLocation(pModel,'aG'),vp:gl.getUniformLocation(pModel,'uVP'),bend:gl.getUniformLocation(pModel,'uBend'),side:gl.getUniformLocation(pModel,'uSide'),root:gl.getUniformLocation(pModel,'uRoot'),rigRoll:gl.getUniformLocation(pModel,'uRigRoll'),rigTilt:gl.getUniformLocation(pModel,'uRigTilt'),rigAzimuth:gl.getUniformLocation(pModel,'uRigAzimuth'),crank:gl.getUniformLocation(pModel,'uCrank'),rotor:gl.getUniformLocation(pModel,'uRotor'),eye:gl.getUniformLocation(pModel,'uEye'),time:gl.getUniformLocation(pModel,'uTime'),float:gl.getUniformLocation(pModel,'uFloat'),fishPos:gl.getUniformLocation(pModel,'uFishPos'),fishDir:gl.getUniformLocation(pModel,'uFishDir'),fishBreach:gl.getUniformLocation(pModel,'uFishBreach'),fishScale:gl.getUniformLocation(pModel,'uFishScale'),fishTail:gl.getUniformLocation(pModel,'uFishTail'),fishJump:gl.getUniformLocation(pModel,'uFishJump'),carpPreview:gl.getUniformLocation(pModel,'uCarpPreview'),carpTailOnly:gl.getUniformLocation(pModel,'uCarpTailOnly'),carpTailLift:gl.getUniformLocation(pModel,'uCarpTailLift'),carpTailSwing:gl.getUniformLocation(pModel,'uCarpTailSwing'),carpShowScale:gl.getUniformLocation(pModel,'uCarpShowScale'),carpCenter:gl.getUniformLocation(pModel,'uCarpCenter'),carpShowDir:gl.getUniformLocation(pModel,'uCarpShowDir'),carpTailAnchor:gl.getUniformLocation(pModel,'uCarpTailAnchor'),carpTailFacing:gl.getUniformLocation(pModel,'uCarpTailFacing')};
 const rod={p:makeBuffer(arr64(DATA.p,Float32Array)),n:makeBuffer(arr64(DATA.n,Float32Array)),c:makeBuffer(arr64(DATA.c,Float32Array)),e:makeBuffer(arr64(DATA.e,Float32Array)),g:makeBuffer(arr64(DATA.g,Float32Array)),i:makeBuffer(arr64(DATA.i,Uint32Array),gl.ELEMENT_ARRAY_BUFFER)};rod.count=arr64(DATA.i,Uint32Array).length;
 function meshFrom64(data){const m={p:makeBuffer(arr64(data.p,Float32Array)),n:makeBuffer(arr64(data.n,Float32Array)),c:makeBuffer(arr64(data.c,Float32Array)),e:makeBuffer(arr64(data.e,Float32Array)),g:makeBuffer(arr64(data.g,Float32Array)),i:makeBuffer(arr64(data.i,Uint32Array),gl.ELEMENT_ARRAY_BUFFER)};m.count=arr64(data.i,Uint32Array).length;return m;}
 const carpBody3D=meshFrom64(CARP3D.body),carpTail3D=meshFrom64(CARP3D.tail);
@@ -348,6 +356,9 @@ const RIG_AXIS_YAW=.56,RIG_ROLL=RIG_AXIS_YAW-Math.PI,RIG_TILT=-.68;
 const guideY=[2.37,3.67,5.28,6.89,8.21,8.69,9.185],guideZ=[.414,.34,.268,.207,.161,.144,.128];let root=.24,bend=.06,rodSide=0,rootVel=0,bendVel=0,sideVel=0,crank=0,rotor=0,phase='idle',floatPos=[-13.2,-1.07,-19.5],castStart=0,clock=0,clockPrev=performance.now(),rippleStart=performance.now()-5000;
 let biteStart=0,waitingStart=0,fightStart=0,tension=38,catchProgress=0,tooTight=0,tooLoose=0,reeling=false,surge=0,fishPos=[-13.2,-1.07,-19.5],fishDir=[.55,.84],fishSurge=0,fishBreach=0,fishSurfaceChance=0,splashBurst=0,finishAt=0;
 let currentFishId='perch',currentFishWeight=750,fishEvent='none',carpPreview=false,carpInspectAngle=0,eventStart=0,eventEnds=0,eventNext=0,eventTensionBurst=0,fishJump=0,fishTurning=0;
+// Independent, irregular carp-only surface gestures; full body stays submerged.
+let carpTailStart=-100,carpTailEnd=-100,carpTailNext=1e9,carpTailBeats=1,carpTailLift=0,carpTailSwing=0,carpTailPosition=[0,-1.02,0],carpTailCount=0;
+let carpBoilStart=-100,carpBoilNext=1e9,carpBoilPosition=[0,-1.03,0],carpRunCount=0,carpJerkCount=0;
 
 // Approved roster: ranges in grams and original draw percentages (sum = 100).
 // Behavior differs ONLY for catches above 1000 g; small catches are deliberately very easy.
@@ -369,15 +380,75 @@ function chooseFish(){currentFishId=pickFishId();const f=FISH[currentFishId];cur
 function isSmallCatch(){return currentFishWeight<=1000;}
 function fishRenderScale(){const base={roach:.40,perch:.62,rudd:.50,crucian:.58,tench:.62,pike:1.04,zander:.96,carp:1.23,grass:1.26,catfish:1.66};const f=FISH[currentFishId],portion=clamp((currentFishWeight-f.weightLo)/Math.max(1,f.weightHi-f.weightLo),0,1);return base[currentFishId]*(.83+portion*.25);}
 function pickEvent(style){const choices={flutter:['dart'],dart:['dart','dart'],tench:['jerk','jerk','dart'],pike:['run','jump','run'],grass:['run','jump','run'],run:['run','run','dart'],catfish:['run','slam','slam','run']};const opts=choices[style]||['dart'];return opts[Math.floor(Math.random()*opts.length)];}
+function startCarpTail(){
+ carpTailStart=clock;const duration=1.1+Math.random()*.55;
+ carpTailEnd=clock+duration;carpTailNext=carpTailEnd+5.6+Math.random()*7.1;
+ carpTailBeats=Math.random()<.42?2:1;carpTailCount++;
+ carpTailPosition=[fishPos[0]-fishDir[0]*fishRenderScale()*1.82,-1.02,fishPos[2]-fishDir[1]*fishRenderScale()*1.82];
+ splashBurst=clock;rippleStart=performance.now();
+ // A fish can slap with its tail without losing 30% of its line in one frame.
+ bendVel+=.68;sideVel+=(Math.random()<.5?-1:1)*.36;
+ tension=clamp(tension+2.5+Math.random()*3.5,0,94);
+}
+function updateCarpSurface(dt){
+ carpTailLift=0;carpTailSwing=0;
+ if(currentFishId!=='carp')return;
+ if(clock>=carpTailNext&&phase==='fight')startCarpTail();
+ if(clock>=carpTailStart&&clock<carpTailEnd){
+  const u=clamp((clock-carpTailStart)/(carpTailEnd-carpTailStart),0,1);
+  const envelope=Math.pow(Math.max(0,Math.sin(u*Math.PI)),.72);
+  carpTailLift=envelope;
+  carpTailSwing=Math.sin(u*Math.PI*2*carpTailBeats)*envelope;
+  // Continuously align the actual 3D tail and its surface waves to the fish.
+  carpTailPosition=[fishPos[0]-fishDir[0]*fishRenderScale()*1.82,-1.02,fishPos[2]-fishDir[1]*fishRenderScale()*1.82];
+ }
+ if(clock>=carpBoilNext&&phase==='fight'){
+  carpBoilStart=clock;carpBoilPosition=[fishPos[0],-1.02,fishPos[2]];
+  carpBoilNext=clock+3.8+Math.random()*5.2;
+ }
+}
+function drawCarpSurface(){
+ if(phase!=='fight'||currentFishId!=='carp')return;
+ const tailAge=clock-carpTailStart,boilAge=clock-carpBoilStart;
+ const tailLive=tailAge>=0&&tailAge<(carpTailEnd-carpTailStart)+1.35;
+ const boilLive=boilAge>=0&&boilAge<1.65;
+ if(!tailLive&&!boilLive)return;
+ for(const item of [[tailLive,tailAge,carpTailPosition,1.0],[boilLive,boilAge,carpBoilPosition,.52]]){
+  const [active,age,center,scale]=item;if(!active)continue;
+  for(let k=0;k<3;k++){
+   const points=[],radius=(.16+Math.max(0,age)*(.45+k*.085)+k*.23)*scale;
+   for(let j=0;j<=39;j++){
+    const a=j/39*6.283185;
+    points.push(center[0]+Math.cos(a)*radius,-.946+.012*Math.sin(a*3+clock*4),center[2]+Math.sin(a)*radius);
+   }
+   drawLine(new Float32Array(points),k===0?[.79,.91,.87]:[.39,.68,.70]);
+  }
+ }
+ if(tailLive&&tailAge<=1.05){
+  const points=[],energy=Math.pow(Math.max(0,Math.sin(Math.PI*clamp(tailAge/(carpTailEnd-carpTailStart),0,1))),.6);
+  for(let j=0;j<29;j++){
+   const a=j*2.3999,r=.11+(j%8)*.067+(tailAge*.18);
+   const life=Math.max(0,tailAge-(j%5)*.032);
+   const up=energy*(.16+Math.sin(Math.min(1,life)*Math.PI)*(.36+(j%4)*.1));
+   points.push(carpTailPosition[0]+r*Math.cos(a),-.97+up,carpTailPosition[2]+r*Math.sin(a));
+  }
+  drawLine(new Float32Array(points),[.88,.97,.96],gl.POINTS);
+ }
+}
 function startFishEvent(age){
  if(isSmallCatch())return;
  const f=FISH[currentFishId];fishEvent=pickEvent(f.style);eventStart=age;
- const length={dart:.42,jerk:.60,run:2.8+Math.random()*1.1,jump:1.55,slam:.65};
- eventEnds=age+length[fishEvent];eventNext=eventEnds+(.65+Math.random()*1.35);
+ const length={dart:.42,jerk:.60,carpStrike:.62+Math.random()*.25,run:currentFishId==='carp'?3.1+Math.random()*1.8:2.8+Math.random()*1.1,jump:1.55,slam:.65};
+ eventEnds=age+length[fishEvent];eventNext=eventEnds+(currentFishId==='carp'?2.5+Math.random()*3.2:.65+Math.random()*1.35);
+ if(currentFishId==='carp'){if(fishEvent==='run')carpRunCount++;if(fishEvent==='carpStrike')carpJerkCount++;}
  // A sudden physical impulse from a big catfish; the rest builds gradually.
  if(fishEvent==='slam'){
   tension=Math.min(98,tension+14+Math.random()*8);
   bendVel+=3.1;rootVel+=.58;sideVel+=fishDir[1]*1.1;
+  splashBurst=clock;
+ }else if(fishEvent==='carpStrike'){
+  bendVel+=1.9;rootVel+=.28;sideVel+=(Math.random()<.5?-1:1)*.75;
+  tension=clamp(tension+3+Math.random()*4,0,93);
   splashBurst=clock;
  }else if(fishEvent==='jerk'){
   bendVel+=1.15;rootVel+=.19;
@@ -421,12 +492,23 @@ else if(next==='lost'){buttonState('↻ SPRÓBUJ PONOWNIE');setLabel('RYBA UCIEK
 else if(next==='miss'){buttonState('↻ SPRÓBUJ PONOWNIE');setLabel('NIE UDAŁO SIĘ ZACIĄĆ','Spławik zniknął — brak reakcji w ciągu 1 sekundy','Spóźnione zacięcie');}
 hudUpdate();updateCarpPreviewUI();}
 function hook(){if(phase!=='bite')return;if(clock-biteStart>1){setPhase('miss');return;}fightStart=clock;tension=38;catchProgress=0;
-fishEvent='none';eventStart=0;eventEnds=0;eventNext=isSmallCatch()?1e9:2.0;eventTensionBurst=0;fishJump=0;fishTurning=0;
+fishEvent='none';eventStart=0;eventEnds=0;eventNext=isSmallCatch()?1e9:currentFishId==='carp'?1.8+Math.random()*1.6:2.0;eventTensionBurst=0;fishJump=0;fishTurning=0;
+ carpTailStart=-100;carpTailEnd=-100;carpTailLift=0;carpTailSwing=0;carpTailCount=0;
+ carpTailNext=currentFishId==='carp'?clock+2.6+Math.random()*3.3:1e9;
+ carpBoilStart=-100;carpBoilNext=currentFishId==='carp'?clock+1.9+Math.random()*3:1e9;
+ carpRunCount=0;carpJerkCount=0;
 tooTight=0;tooLoose=0;rootVel=0;bendVel=0;sideVel=0;rodSide=0;splashBurst=clock;fishPos=[...fpTarget];fishDir=[.55,.84];fishSurge=1;fishBreach=0;fishSurfaceChance=0;rippleStart=performance.now();setPhase('fight');}
-let holdPointer=false,holdTouch=false,holdKey=false;
+let holdPointer=false,holdTouch=false,holdKey=false,suppressReelClick=false;
 function syncReeling(){reeling=phase==='fight'&&(holdPointer||holdTouch||holdKey);}
 function stopReeling(){holdPointer=false;holdTouch=false;holdKey=false;reeling=false;}
-function playerAction(){if(phase==='idle'||phase==='win'||phase==='lost'||phase==='miss'){cast();}else if(phase==='bite'){hook();}else if(phase==='fight'){/* Reel-in is controlled by pointerdown/up, not a sticky click. */}}
+function playerAction(){
+ // A long press that finishes the fish must NOT be mistaken for a second tap
+ // to cast again on pointerup (Safari and Chromium both dispatch click).
+ if(suppressReelClick){suppressReelClick=false;return;}
+ if(phase==='idle'||phase==='win'||phase==='lost'||phase==='miss'){cast();}
+ else if(phase==='bite'){hook();}
+ else if(phase==='fight'){/* Reel is controlled only by holding. */}
+}
 
 const fpTarget=[-13.2,-1.07,-19.5];const baseAngle=.25;
 function aimRigPoint(v){
@@ -499,19 +581,19 @@ castStart=clock;document.getElementById('progress').style.display='block';setPha
 // Hold-to-reel supports Safari touch events as well as mouse and stylus.
 // A touch press is kept until touchend; Safari can cancel pointer capture early.
 actionBtn.addEventListener('pointerdown',e=>{
- if(phase!=='fight')return;
- e.preventDefault();holdPointer=true;syncReeling();
+ if(phase!=='fight'){suppressReelClick=false;return;}
+ e.preventDefault();suppressReelClick=true;holdPointer=true;syncReeling();
  try{actionBtn.setPointerCapture?.(e.pointerId);}catch(_e){}
 });
 actionBtn.addEventListener('pointerup',stopReeling);
-actionBtn.addEventListener('pointercancel',()=>{holdPointer=false;syncReeling()});
+actionBtn.addEventListener('pointercancel',()=>{holdPointer=false;suppressReelClick=false;syncReeling()});
 actionBtn.addEventListener('lostpointercapture',()=>{holdPointer=false;syncReeling()});
 actionBtn.addEventListener('touchstart',e=>{
  if(phase!=='fight')return;
- e.preventDefault();holdTouch=true;syncReeling();
+ e.preventDefault();suppressReelClick=true;holdTouch=true;syncReeling();
 },{passive:false});
 actionBtn.addEventListener('touchend',()=>{holdTouch=false;holdPointer=false;syncReeling()},{passive:true});
-actionBtn.addEventListener('touchcancel',()=>{holdTouch=false;holdPointer=false;syncReeling()},{passive:true});
+actionBtn.addEventListener('touchcancel',()=>{holdTouch=false;holdPointer=false;suppressReelClick=false;syncReeling()},{passive:true});
 actionBtn.addEventListener('click',playerAction);
 window.addEventListener('pointerup',stopReeling);
 window.addEventListener('touchend',()=>{holdTouch=false;holdPointer=false;syncReeling()},{passive:true});
@@ -545,7 +627,16 @@ if(phase==='bite'){
 }
 if(phase==='fight'){
  const fish=FISH[currentFishId],age=clock-fightStart,small=isSmallCatch();
- if(!small && age>=eventNext && fishEvent==='none')startFishEvent(age);
+ if(!small && age>=eventNext && fishEvent==='none'){
+  if(currentFishId==='carp'){
+   // Carp: sustained runs alternating with compact, powerful blows, not a fixed loop.
+   fishEvent=Math.random()<.55?'run':'carpStrike';
+   const duration=fishEvent==='run'?3.1+Math.random()*1.8:.62+Math.random()*.25;
+   eventStart=age;eventEnds=age+duration;eventNext=eventEnds+2.5+Math.random()*3.2;
+   if(fishEvent==='run')carpRunCount++;
+   else{carpJerkCount++;bendVel+=1.9;rootVel+=.28;sideVel+=(Math.random()<.5?-1:1)*.75;tension=clamp(tension+3+Math.random()*4,0,93);splashBurst=clock;}
+  }else startFishEvent(age);
+ }
  if(fishEvent!=='none'&&age>=eventEnds){
   if(fishEvent==='jump'){splashBurst=clock;rippleStart=performance.now();}
   fishEvent='none';
@@ -556,10 +647,11 @@ if(phase==='fight'){
  const run=fishEvent==='run'?impact:0;
  const slam=fishEvent==='slam'?impact:0;
  const jerk=fishEvent==='jerk'?impact:0;
+ const carpStrike=fishEvent==='carpStrike'?impact:0;
  const dart=fishEvent==='dart'?impact:0;
  const leap=fishEvent==='jump'?impact:0;
  const powerFactor=small?.08:(.75+.25*(currentFishWeight-fish.weightLo)/Math.max(1,fish.weightHi-fish.weightLo));
- const force=small ? 1.3 : fish.strength*(.35+.30*kick)+Math.max(0,Math.sin(age*1.6))*2.7+run*13+slam*63+jerk*18+dart*7+leap*8;
+ const force=small ? 1.3 : fish.strength*(.35+.30*kick)+Math.max(0,Math.sin(age*1.6))*2.7+run*13+slam*63+jerk*18+dart*7+leap*8+carpStrike*30;
  if(small){
   // Under or exactly 1 kg: quick, gentle fight without accidental line snap.
   tension=clamp(tension+(reeling?17:-13)*dt-force*.08*dt,29,62);
@@ -568,8 +660,12 @@ if(phase==='fight'){
   tooTight=0;tooLoose=0;
  }else{
   tension=clamp(tension+(reeling?29:-34)*dt+force*.72*dt*powerFactor,0,100);
-  if(reeling)catchProgress=clamp(catchProgress+fish.progress*dt*Math.max(.24,1-Math.max(0,tension-76)/28)*(1-run*.69-slam*.32),0,100);
-  else catchProgress=Math.max(0,catchProgress-(fish.retreat+run*fish.retreat*2.8+slam*3)*dt);
+  if(reeling){
+   const gain=fish.progress*dt*Math.max(.24,1-Math.max(0,tension-76)/28)*(1-run*.69-slam*.32);
+   // A big carp can peel line even while the handle is being turned.
+   const outgoing=currentFishId==='carp'?run*3.4*dt:0;
+   catchProgress=clamp(catchProgress+gain-outgoing,0,100);
+  }else catchProgress=Math.max(0,catchProgress-(fish.retreat+run*fish.retreat*(currentFishId==='carp'?3.15:2.8)+slam*3)*dt);
   tooTight=tension>91?tooTight+dt:Math.max(0,tooTight-dt*1.9);
   tooLoose=tension<12?tooLoose+dt:Math.max(0,tooLoose-dt*1.4);
  }
@@ -577,16 +673,18 @@ if(phase==='fight'){
  const distance=1-catchProgress/100;
  const oldFish=[...fishPos];
  const amplitude=small?.17:(.27+fish.strength*.037);
- const runOffset=run*(.55+fish.strength*.075);
+ const runOffset=run*(.55+fish.strength*.075)*(currentFishId==='carp'?1.48:1);
  fishPos=[lerp(-4.1,fpTarget[0],distance)+amplitude*Math.sin(age*.76)+(runOffset*.7)*Math.sin(age*.48+1.5)+dart*.5*Math.sin(age*16),
           -1.07,
-          lerp(-3.7,fpTarget[2],distance)+amplitude*.46*Math.cos(age*1.01)-runOffset*.85+jerk*.21*Math.sin(age*19)];
+          lerp(-3.7,fpTarget[2],distance)+amplitude*.46*Math.cos(age*1.01)-runOffset*.85+jerk*.21*Math.sin(age*19)+carpStrike*.38*Math.sin(age*20)];
  const stepX=fishPos[0]-oldFish[0],stepZ=fishPos[2]-oldFish[2],speed=Math.hypot(stepX,stepZ);
  if(speed>.001){const target=[stepX/speed,stepZ/speed];fishDir=[lerp(fishDir[0],target[0],.14),lerp(fishDir[1],target[1],.14)];const mag=Math.hypot(...fishDir)||1;fishDir=fishDir.map(v=>v/mag);}
  fishSurge=small?.06:Math.min(1.5,kick);
+ updateCarpSurface(dt);
+ if(currentFishId==='carp'&&carpTailLift>0)fishSurge+=carpTailLift*.22;
  const pulse=(x,center,width)=>Math.exp(-Math.pow((x-center)/width,2));
  const cycle=age%8.8;
- const naturalSurface=small?0:Math.max(pulse(cycle,2.0,.47),pulse(cycle,5.7,.68)*.92,pulse(cycle,7.64,.32)*.58);
+ const naturalSurface=small||currentFishId==='carp'?0:Math.max(pulse(cycle,2.0,.47),pulse(cycle,5.7,.68)*.92,pulse(cycle,7.64,.32)*.58);
  fishSurfaceChance=naturalSurface;
  // Jump is a strong, species-specific vertical breach; all other species stay mostly submerged.
  fishJump=lerp(fishJump,leap,1-Math.exp(-dt*16));
@@ -597,12 +695,12 @@ if(phase==='fight'){
  // springy impulse and subtle recovery rather than a hinged or rigid rotation.
  const load=clamp01((tension-18)/81);
  const weightDrive=small?.12:clamp((currentFishWeight/1000)/15,.25,1.2);
- const longPull=run*(fish.style==='catfish'?.11:.075);
- const strike=slam*.14+jerk*.062+dart*.028;
+ const longPull=run*(currentFishId==='carp'?.15:fish.style==='catfish'?.11:.075);
+ const strike=slam*.14+jerk*.062+dart*.028+carpStrike*.112+carpTailLift*.033;
  const rodFlutter=small?.006*Math.sin(age*3.8):fish.style==='tench'?.025*Math.sin(age*15)*jerk:fish.style==='catfish'?.028*Math.sin(age*21)*slam:.009*Math.sin(age*3.8);
  r=.235+.019*Math.sin(age*.85)+.022*Math.sin(age*2.3)+.027*fishDir[0]+longPull+strike*.35;
  b=clamp(small?.155+.012*Math.sin(age*3):.22+load*(.23+weightDrive*.26)+kick*.07+longPull+strike+rodFlutter,.10,1.05);
- sideTarget=small?.015*Math.sin(age):clamp(fishDir[1]*(.13+weightDrive*.13)+run*.14*Math.sin(age*1.8)+jerk*.07*Math.sin(age*14)+slam*.17*Math.sin(age*22),-.76,.76);
+ sideTarget=small?.015*Math.sin(age):clamp(fishDir[1]*(.13+weightDrive*.13)+run*.14*Math.sin(age*1.8)+jerk*.07*Math.sin(age*14)+slam*.17*Math.sin(age*22)+carpStrike*.19*Math.sin(age*21)+carpTailSwing*.07,-.76,.76);
  if(catchProgress>=100){finishAt=clock;setPhase('win');stopReeling();}
  else if(tooTight>.75||tooLoose>2.25){finishAt=clock;setPhase('lost');stopReeling();}
 }
@@ -626,19 +724,34 @@ gl.drawElements(gl.TRIANGLES,waterInd.length,gl.UNSIGNED_SHORT,0);gl.disable(gl.
 gl.useProgram(pModel);gl.uniformMatrix4fv(mLoc.vp,false,vp);gl.uniform3fv(mLoc.eye,new Float32Array(cam.eye));gl.uniform1f(mLoc.time,clock);gl.uniform1f(mLoc.root,root);gl.uniform1f(mLoc.bend,bend);gl.uniform1f(mLoc.side,rodSide);gl.uniform1f(mLoc.rigRoll,RIG_ROLL);gl.uniform1f(mLoc.rigTilt,RIG_TILT);gl.uniform1f(mLoc.rigAzimuth,RIG_AXIS_YAW);gl.uniform1f(mLoc.crank,crank);gl.uniform1f(mLoc.rotor,rotor);gl.uniform3fv(mLoc.float,new Float32Array(floatPos));activateMesh(envMesh);if(!(carpPreview||(phase==='win'&&currentFishId==='carp')))activateMesh(rod);gl.uniform3fv(mLoc.fishPos,new Float32Array(fishPos));gl.uniform2fv(mLoc.fishDir,new Float32Array(fishDir));gl.uniform1f(mLoc.fishBreach,fishBreach);gl.uniform1f(mLoc.fishScale,fishSize);
 gl.uniform1f(mLoc.fishJump,fishJump);gl.uniform1f(mLoc.fishTail,Math.sin(clock*(fishEvent==='slam'?22:fishEvent==='jerk'?17:fishEvent==='jump'?12:8))*(.16+fishSurge*.32));
 const carpShow=carpPreview||(phase==='win'&&currentFishId==='carp');
-const carpTailBreach=phase==='fight'&&currentFishId==='carp'&&(((clock-fightStart)%9.2)>6.3&&((clock-fightStart)%9.2)<7.12);
+const carpTailBreach=phase==='fight'&&currentFishId==='carp'&&clock>=carpTailStart&&clock<carpTailEnd;
 const forward=unit(sub(cam.target,cam.eye));
 const carpCenter=[cam.eye[0]+forward[0]*12.0,cam.eye[1]+forward[1]*12.0+.26,cam.eye[2]+forward[2]*12.0];
 const carpBearing=yaw+(alternate?.20:0)+carpInspectAngle,carpDir=[-Math.cos(carpBearing+.09*Math.sin(clock*.40)),Math.sin(carpBearing+.09*Math.sin(clock*.40))];
-gl.uniform1f(mLoc.carpPreview,carpShow?1:0);gl.uniform1f(mLoc.carpTailOnly,0);
+gl.uniform1f(mLoc.carpPreview,carpShow?1:0);gl.uniform1f(mLoc.carpTailOnly,0);gl.uniform1f(mLoc.carpTailLift,carpTailLift);gl.uniform1f(mLoc.carpTailSwing,carpTailSwing);
 gl.uniform1f(mLoc.carpShowScale,1.01);gl.uniform3fv(mLoc.carpCenter,new Float32Array(carpCenter));gl.uniform2fv(mLoc.carpShowDir,new Float32Array(carpDir));
+const viewFromTail=unit([cam.eye[0]-carpTailPosition[0],cam.eye[2]-carpTailPosition[2]]);
+const tailFacing=[viewFromTail[1],-viewFromTail[0]];
+gl.uniform3fv(mLoc.carpTailAnchor,new Float32Array(carpTailPosition));gl.uniform2fv(mLoc.carpTailFacing,new Float32Array(tailFacing));
 if(phase==='fight'&&currentFishId!=='carp')activateMesh(surfaceFish);
 if(carpTailBreach){gl.uniform1f(mLoc.carpTailOnly,1);activateMesh(carpTail3D);gl.uniform1f(mLoc.carpTailOnly,0);}
 if(carpShow){activateMesh(carpBody3D);activateMesh(carpTail3D);}
 if(phase==='cast'||phase==='waiting'||phase==='bite'||phase==='miss')activateMesh(floatMesh);
 // 4. Line anchored to the reel bail roller and all guides; water ripples and spray.
-if(!carpShow)drawLine(wirePoints());if(phase!=='idle'&&(phase!=='cast'||elapsed>1.9)){drawRipple();if(phase==='fight'){try{drawFishWake();}catch(err){if(!window.__carprideWakeWarning){window.__carprideWakeWarning=String(err);console.error('Fish wake skipped:',err);}}}if((phase==='fight'&&clock-splashBurst<1.3)||((performance.now()-rippleStart)<1650))drawSplash();}
-window.__carprideSceneState={loaded:true,scenery,approvedBackdropLoaded:!!skyReady,phase,waterAnimated:true,rod3d:true,fl3d:true,rigRoll:RIG_ROLL,visibleGuides:7,guideY:[...guideY],floatVisible:['cast','waiting','bite','miss'].includes(phase),rotor,crank,root,bend,rodSide,rootVelocity:rootVel,bendVelocity:bendVel,float:[...floatPos],tension,catchProgress,reeling,selectedFish:currentFishId,fishWeightGrams:currentFishWeight,fishEvent,fishJump,fishPosition:[...fishPos],fishDirection:[...fishDir],fishBreach,fishSurfaceChance,surfaceFish3d:true,carp3d:true,carpPreview:carpShow,carpTailAboveWater:carpTailBreach,carpTriangles:(carpBody3D.count+carpTail3D.count)/3,wake3d:phase==='fight',fps:Math.round(1/Math.max(dt,.001)),view:alternate?'side':'pov',triangles:rod.count/3+waterInd.length/3};requestAnimationFrame(render);
+if(!carpShow)drawLine(wirePoints());
+if(phase!=='idle'&&(phase!=='cast'||elapsed>1.9)){
+ if(currentFishId!=='carp'||phase!=='fight')drawRipple();
+ if(phase==='fight'){
+  try{if(currentFishId!=='carp'||fishEvent==='run'||fishEvent==='carpStrike')drawFishWake();
+      if(currentFishId==='carp')drawCarpSurface();}
+  catch(err){if(!window.__carprideWakeWarning){window.__carprideWakeWarning=String(err);console.error('Surface effects skipped:',err);}}
+ }
+ if((phase==='fight'&&clock-splashBurst<1.3)||((performance.now()-rippleStart)<1650)){
+   // The tail produces its own water spray, so no duplicate splash at carp's head.
+   if(currentFishId!=='carp'||!carpTailBreach)drawSplash();
+ }
+}
+window.__carprideSceneState={loaded:true,scenery,approvedBackdropLoaded:!!skyReady,phase,waterAnimated:true,rod3d:true,fl3d:true,rigRoll:RIG_ROLL,visibleGuides:7,guideY:[...guideY],floatVisible:['cast','waiting','bite','miss'].includes(phase),rotor,crank,root,bend,rodSide,rootVelocity:rootVel,bendVelocity:bendVel,float:[...floatPos],tension,catchProgress,reeling,selectedFish:currentFishId,fishWeightGrams:currentFishWeight,fishEvent,fishJump,fishPosition:[...fishPos],fishDirection:[...fishDir],fishBreach,fishSurfaceChance,surfaceFish3d:true,carp3d:true,carpPreview:carpShow,carpTailAboveWater:carpTailBreach,carpTailCount,carpTailNext,carpTailLift,carpTailSwing,carpTailBeats,carpTailPosition:[...carpTailPosition],carpBoilActive:currentFishId==='carp'&&clock-carpBoilStart<1.65,carpRunCount,carpJerkCount,carpTriangles:(carpBody3D.count+carpTail3D.count)/3,wake3d:phase==='fight',fps:Math.round(1/Math.max(dt,.001)),view:alternate?'side':'pov',triangles:rod.count/3+waterInd.length/3};requestAnimationFrame(render);
 }
 window.__carprideScene={cast,hook,previewCarp:()=>{fishSelect.value='carp';carpPreview=true;updateCarpPreviewUI();},view:()=>{alternate=!alternate;},getState:()=>window.__carprideSceneState,debugBite:()=>{biteStart=clock;setPhase('bite')},debugFight:()=>{biteStart=clock;setPhase('bite');hook()},debugSelectFish:(id,weight)=>{
  if(!FISH[id])return false;
@@ -655,6 +768,15 @@ window.__carprideScene={cast,hook,previewCarp:()=>{fishSelect.value='carp';carpP
  if(type==='slam'){bendVel+=3.1;rootVel+=.58;tension=clamp(tension+15,0,100);}
  if(type==='jerk'){bendVel+=1.15;rootVel+=.19;}
  return true;
-},debugSetTension:v=>{tension=clamp(v,0,100)},debugSetProgress:v=>{catchProgress=clamp(v,0,100)},debugBreach:v=>{fishBreach=clamp(v,0,1.15)},debugEvent:(name)=>{const age=clock-fightStart;fishEvent=name;eventStart=age;eventEnds=age+({jump:1.55,run:3.5,slam:.65,jerk:.60,dart:.42}[name]||1);eventNext=eventEnds+5;},debugWeight:(g)=>{currentFishWeight=Math.round(g)},getRoster:()=>FISH};setPhase('idle');requestAnimationFrame(render);
+},debugSetTension:v=>{tension=clamp(v,0,100)},debugSetProgress:v=>{catchProgress=clamp(v,0,100)},debugBreach:v=>{fishBreach=clamp(v,0,1.15)},debugEvent:(name)=>{
+ if(phase!=='fight')return false;
+ if(name==='tail'&&currentFishId==='carp'){startCarpTail();return true;}
+ if(!['jump','run','slam','jerk','dart','carpStrike'].includes(name))return false;
+ const age=clock-fightStart;fishEvent=name;eventStart=age;
+ eventEnds=age+({jump:1.55,run:3.6,slam:.65,jerk:.60,dart:.42,carpStrike:.72}[name]||1);
+ eventNext=eventEnds+5;
+ if(name==='carpStrike'){bendVel+=1.9;rootVel+=.28;}
+ return true;
+},debugWeight:(g)=>{currentFishWeight=Math.round(g)},getRoster:()=>FISH};setPhase('idle');requestAnimationFrame(render);
 })()
 </script></body></html>

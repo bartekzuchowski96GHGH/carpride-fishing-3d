@@ -23,7 +23,7 @@
   .app.is-fighting .fightHud {padding:8px 12px}
   .app.is-fighting .action button{min-height:52px}
 }
-</style></head><body><main class="app" id="app"><canvas id="scene" aria-label="Animowana scena 3D — jezioro, wędka, kołowrotek i spławik"></canvas><div class="tint"></div><div class="top"><div><div class="brand">CarpRide<span>Club</span></div><div class="subtitle">FISHING 3D • V2.5.1</div></div><div class="chip">HOL 3D · TEST</div></div><div class="hero"><strong id="headline">Gotowy do zarzucenia</strong><small id="detail">Zarzuć zestaw i poczekaj na branie</small></div><div class="castProgress" id="progress"><div id="progressInner"></div></div><div class="credit">WĘDKA + KOŁOWROTEK 3D · BEZ RĄK</div><div class="controls">
+</style></head><body><main class="app" id="app"><canvas id="scene" aria-label="Animowana scena 3D — jezioro, wędka, kołowrotek i spławik"></canvas><div class="tint"></div><div class="top"><div><div class="brand">CarpRide<span>Club</span></div><div class="subtitle">FISHING 3D • V2.5.5</div></div><div class="chip">HOL 3D · TEST</div></div><div class="hero"><strong id="headline">Gotowy do zarzucenia</strong><small id="detail">Zarzuć zestaw i poczekaj na branie</small></div><div class="castProgress" id="progress"><div id="progressInner"></div></div><div class="credit">WĘDKA + KOŁOWROTEK 3D · BEZ RĄK</div><div class="controls">
 <div class="biteHud" id="biteHud" hidden><strong>BRANIE! ZACINAJ!</strong><div class="countdown"><span id="biteFill"></span></div><small>Masz 1 sekundę na reakcję</small></div>
 <div class="fightHud" id="fightHud" hidden>
  <div class="hudTitles"><b>NAPIĘCIE ŻYŁKI</b><span id="tensionVal">38%</span></div>
@@ -245,7 +245,7 @@ const surfaceFish=makeSurfaceFish();
 
 const lineP=gl.createBuffer(),lineN=gl.createBuffer(),lineC=gl.createBuffer(),lineE=gl.createBuffer(),lineG=gl.createBuffer();const maxLine=32;
 function setDyn(buf,data){gl.bindBuffer(gl.ARRAY_BUFFER,buf);gl.bufferData(gl.ARRAY_BUFFER,data,gl.DYNAMIC_DRAW)}
-const RIG_ROLL=0.63; // rad: underside points towards the standard POV camera
+const RIG_ROLL=-0.92; // rad: reel and guides are clearly under the blank from the angler POV
 const guideY=[2.15,2.88,3.67,4.47,5.28,6.09,6.89,7.62,8.21,8.69,9.01],guideZ=[.414,.376,.34,.301,.268,.235,.207,.183,.161,.144,.128];let root=.24,bend=.06,rodSide=0,rootVel=0,bendVel=0,sideVel=0,crank=0,rotor=0,phase='idle',floatPos=[-4.0,-1.07,-7.3],castStart=0,clock=0,clockPrev=performance.now(),rippleStart=performance.now()-5000;
 let biteStart=0,waitingStart=0,fightStart=0,tension=38,catchProgress=0,tooTight=0,tooLoose=0,reeling=false,surge=0,fishPos=[-9,-1.07,-7.9],fishDir=[.55,.84],fishSurge=0,fishBreach=0,fishSurfaceChance=0,splashBurst=0,finishAt=0;
 let currentFishId='perch',currentFishWeight=750,fishEvent='none',eventStart=0,eventEnds=0,eventNext=0,eventTensionBurst=0,fishJump=0,fishTurning=0;
@@ -331,14 +331,14 @@ function stepRodDynamics(targetRoot,targetBend,targetSide,dt){
  bend=clamp(bend,.03,1.12);
  rodSide=clamp(rodSide,-.88,.88);
 }
-function rollerPos(t){let pivot=[0,-.30,.2],base=[.91,-.345,1.22],dx=base[0]-pivot[0],dy=base[1]-pivot[1],x=pivot[0]+Math.cos(t)*dx-Math.sin(t)*dy,y=pivot[1]+Math.sin(t)*dx+Math.cos(t)*dy;return dPoint([x*.45,1.51+base[2]*.45,.75-y*.45],root,0);}
+function rollerPos(t){let pivot=[0,-.30,.2],base=[.98,-.355,1.24],dx=base[0]-pivot[0],dy=base[1]-pivot[1],x=pivot[0]+Math.cos(t)*dx-Math.sin(t)*dy,y=pivot[1]+Math.sin(t)*dx+Math.cos(t)*dy;return dPoint([x*.47,1.49+base[2]*.45,.78-y*.47],root,0);}
 function wirePoints(){const pts=[rollerPos(rotor)];for(let i=0;i<guideY.length;i++)pts.push(dPoint([0,guideY[i],guideZ[i]],root,bend));const tip=pts[pts.length-1];// During the vertical leap the line follows the hooked fish up out of the water.
 const sizeNow=fishRenderScale();
 const lineLift=(phase==='fight'?fishJump:0);
 const target=phase==='fight'||phase==='win'||phase==='lost'?[fishPos[0]+fishDir[0]*lineLift*.24,-1.04+lineLift*sizeNow*2.55,fishPos[2]+fishDir[1]*lineLift*.24]:[floatPos[0],floatPos[1]+.94,floatPos[2]];if(phase==='cast'&&clock-castStart<1.2){pts.push([lerp(tip[0],target[0],.42),lerp(tip[1],target[1],.42),lerp(tip[2],target[2],.42)])}pts.push(target);return new Float32Array(pts.flat());}
-const zoom=13.7,initialYaw=.63;let yaw=initialYaw,pitch=.085,alternate=false,drag=null;
-function getCamera(t){const target=alternate?[-1.8,3.7,-1]:[-3.4,3.60,-1.0];let distance=alternate?15.3:zoom,a=yaw+(alternate?.20:0),pi=pitch+(alternate?.06:0);return {target,eye:[target[0]+distance*Math.sin(a)*Math.cos(pi),target[1]+distance*Math.sin(pi)+.35,target[2]+distance*Math.cos(a)*Math.cos(pi)]};}
-function drawLine(points,clr=[.68,.92,.37],mode=gl.LINE_STRIP){let n=points.length/3;const colors=new Float32Array(n*3),norm=new Float32Array(n*3),ext=new Float32Array(n*3),groups=new Float32Array(n);for(let k=0;k<n;k++){colors.set(clr,k*3);norm.set([0,0,1],k*3);groups[k]=4}setDyn(lineP,points);setDyn(lineN,norm);setDyn(lineC,colors);setDyn(lineE,ext);setDyn(lineG,groups);bindAttr(mLoc.p,lineP,3);bindAttr(mLoc.n,lineN,3);bindAttr(mLoc.c,lineC,3);bindAttr(mLoc.e,lineE,3);bindAttr(mLoc.g,lineG,1);gl.drawArrays(mode,0,n)}
+const zoom=13.45,initialYaw=.56;let yaw=initialYaw,pitch=.06,alternate=false,drag=null;
+function getCamera(t){const target=alternate?[-1.8,3.7,-1]:[-3.12,3.53,-1.02];let distance=alternate?15.3:zoom,a=yaw+(alternate?.20:0),pi=pitch+(alternate?.06:0);return {target,eye:[target[0]+distance*Math.sin(a)*Math.cos(pi),target[1]+distance*Math.sin(pi)+.35,target[2]+distance*Math.cos(a)*Math.cos(pi)]};}
+function drawLine(points,clr=[.82,.98,.58],mode=gl.LINE_STRIP){let n=points.length/3;const colors=new Float32Array(n*3),norm=new Float32Array(n*3),ext=new Float32Array(n*3),groups=new Float32Array(n);for(let k=0;k<n;k++){colors.set(clr,k*3);norm.set([0,0,1],k*3);groups[k]=4}setDyn(lineP,points);setDyn(lineN,norm);setDyn(lineC,colors);setDyn(lineE,ext);setDyn(lineG,groups);bindAttr(mLoc.p,lineP,3);bindAttr(mLoc.n,lineN,3);bindAttr(mLoc.c,lineC,3);bindAttr(mLoc.e,lineE,3);bindAttr(mLoc.g,lineG,1);gl.drawArrays(mode,0,n)}
 function drawRipple(){const age=(performance.now()-rippleStart)/1000;let rr=(age<2.5)?age*.46+.13:.23+.04*Math.sin(clock*2);let cen=phase==='fight'||phase==='win'||phase==='lost'?fishPos:floatPos;for(let k=0;k<3;k++){let radi=rr+k*.24;const pp=[];for(let j=0;j<=64;j++){let a=j/64*Math.PI*2;pp.push(cen[0]+Math.cos(a)*radi,-1.015+.013*Math.sin(clock*2+j*.2),cen[2]+Math.sin(a)*radi)}drawLine(new Float32Array(pp),k===0?[.69,.82,.77]:[.43,.64,.66]);}}
 function drawFishWake(){
  if(phase!=='fight')return;

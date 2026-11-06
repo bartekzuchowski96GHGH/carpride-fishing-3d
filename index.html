@@ -1,4 +1,4 @@
-<!doctype html><html lang="pl"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no"/><meta name="theme-color" content="#0c1822"/><title>CarpRide Fishing 3D — Demo v2.7.6 — środkowy widok wędki i zręcznościowy hol</title>
+<!doctype html><html lang="pl"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no"/><meta name="theme-color" content="#0c1822"/><title>CarpRide Fishing 3D — Demo v2.8.0 — zręcznościowy hol i ryzyko zerwania żyłki</title>
 <style>
 :root{font-family:system-ui,-apple-system,'Segoe UI',Arial,sans-serif;color:#f7f6f2;background:#070d14}*{box-sizing:border-box}html,body{margin:0;height:100%;overscroll-behavior:none}button{font:inherit}body{display:flex;justify-content:center;background:radial-gradient(circle at 50% 40%,#24394b,#09111b 76%)}.app{height:100dvh;width:min(100%,580px);position:relative;isolation:isolate;overflow:hidden;background:#142532}canvas{display:block;position:absolute;inset:0;width:100%;height:100%;touch-action:none}#scene{z-index:1}.tint{position:absolute;z-index:2;inset:0;pointer-events:none;background:linear-gradient(180deg,rgba(4,8,15,.69) 0%,transparent 20%,transparent 61%,rgba(4,9,15,.37) 80%,#08131dd9 100%)}.top{z-index:3;position:absolute;left:0;right:0;top:0;padding:max(env(safe-area-inset-top),15px) 18px 12px;display:flex;align-items:flex-start;justify-content:space-between;gap:12px;pointer-events:none}.brand{font-weight:950;font-size:clamp(21px,5.4vw,28px);font-style:italic;letter-spacing:-1px;text-shadow:0 2px 15px #050b10}.brand span{color:#f04d4b}.subtitle{font-size:10px;letter-spacing:2.25px;font-weight:900;text-transform:uppercase;color:#f7d29c;text-shadow:0 2px 9px #050b10;margin-top:3px}.chip{font-size:11px;font-weight:800;color:#f3e7ce;background:#101b28d9;border:1px solid #dba86480;padding:8px 12px;border-radius:14px;white-space:nowrap;box-shadow:0 8px 25px #0005}.hero{position:absolute;z-index:3;top:calc(max(env(safe-area-inset-top),15px) + 77px);left:20px;pointer-events:none;max-width:265px;text-shadow:0 1px 13px #031019}.hero strong{font-size:clamp(16px,4vw,21px);font-weight:950;display:block}.hero small{display:block;margin-top:3px;font-size:11px;font-weight:600;color:#e6edf0}.controls{position:absolute;z-index:4;bottom:calc(env(safe-area-inset-bottom) + 18px);left:17px;right:17px;display:flex;flex-direction:column;gap:12px}.status{background:#091720c9;backdrop-filter:blur(8px);border:1px solid #e0be8855;border-radius:15px;padding:12px 14px;display:flex;justify-content:space-between;align-items:center;gap:8px}.status .label{font-size:10px;font-weight:850;text-transform:uppercase;letter-spacing:1.6px;color:#f3c78f}.status .text{font-size:13px;color:#eff5f4;font-weight:750;margin-top:3px}.bars{display:flex;gap:4px;align-items:center}.bars i{height:20px;width:5px;border-radius:3px;background:#6bcf9a}.bars i:nth-child(3){height:26px}.bars i:nth-child(4){height:16px}.action{display:flex;gap:10px}.action button{min-height:57px;border-radius:15px;touch-action:none;-webkit-touch-callout:none;-webkit-user-select:none;user-select:none;cursor:pointer;border:1px solid #c6a66a;background:#0d1925e8;color:white;font-weight:900;padding:0 13px;box-shadow:0 8px 23px #0007}.action button.main{flex:1;background:linear-gradient(160deg,#eac27b,#ac7632);color:#161b1d;border:1px solid #ffe9af;font-size:15px;letter-spacing:.6px;box-shadow:0 0 26px #eca44333}.action button.main:active{transform:scale(.985)}.action button[disabled]{opacity:.55}.hint{font-size:10px;color:#e0ddcfaa;text-align:center;line-height:1.4}.error{display:none;position:absolute;inset:auto 20px 34%;z-index:10;background:#5b2029f4;color:white;border:1px solid #fd8888;border-radius:12px;padding:16px;font-size:14px;line-height:1.5}.credit{position:absolute;z-index:3;right:18px;bottom:calc(env(safe-area-inset-bottom) + 185px);font-size:10px;color:#f5edddad;pointer-events:none;letter-spacing:.4px}.castProgress{position:absolute;z-index:3;top:calc(max(env(safe-area-inset-top),15px) + 139px);left:20px;right:20px;height:3px;background:#fffff026;border-radius:10px;overflow:hidden;pointer-events:none;display:none}.castProgress div{height:100%;width:0;background:#ffdb96;box-shadow:0 0 12px #ffd376}@media(min-width:600px){.app{height:min(950px,96dvh);margin:auto;border-radius:26px;border:1px solid #70809266;box-shadow:0 15px 80px #000a}.brand{font-size:27px}}@media(max-height:700px){.hero{top:calc(max(env(safe-area-inset-top),10px) + 62px)}.credit{bottom:160px}.controls{gap:7px}.status{padding:8px 12px}.action button{min-height:47px}}
 
@@ -59,11 +59,20 @@
 .carp-model-tag b{display:block;color:#f4c67d;font-size:12px;letter-spacing:.8px}
 .carp-model-tag span{display:block;color:#e6ded0;font-size:10px;margin-top:4px}
 .app.is-fighting .carp-preview-btn{display:none}
+
+/* v2.8.0: overload warning; occupies space only while genuinely under dangerous pressure. */
+.fightHud.lineDanger{border-color:#ff6b66;animation:lineDangerPulse .31s ease-in-out infinite alternate;}
+.fightHud.lineDanger .tensionTrack{box-shadow:0 0 9px #fa4545, inset 0 1px 4px #000a;}
+.breakWarning{display:flex;align-items:center;justify-content:space-between;gap:5px;margin-top:5px;color:#ffe5df;font-size:9px;font-weight:900;letter-spacing:.05px;background:#9a2028ed;padding:5px 6px;border-radius:6px;box-shadow:0 0 9px #c1192790;}
+.breakWarning span{font-variant-numeric:tabular-nums;white-space:nowrap;color:#fff6a1;}
+@keyframes lineDangerPulse{from{box-shadow:0 0 2px #f34242aa,0 4px 18px #0008}to{box-shadow:0 0 17px #ff3838d9,0 4px 18px #0008}}
+@media(prefers-reduced-motion:reduce){.fightHud.lineDanger{animation:none}}
 </style><body><main class="app" id="app"><canvas id="scene" aria-label="Animowana scena 3D — jezioro, wędka, kołowrotek i spławik"></canvas><div class="tint"></div><div class="top"><div><div class="brand">CarpRide<span>Club</span></div><div class="subtitle">FISHING 3D • V2.7.6</div></div><div class="chip">HOL 3D · TEST</div></div><div class="hero"><strong id="headline">Gotowy do zarzucenia</strong><small id="detail">Zarzuć zestaw i poczekaj na branie</small></div><div class="castProgress" id="progress"><div id="progressInner"></div></div><div class="credit">WĘDKA + KOŁOWROTEK 3D · BEZ RĄK</div><div class="controls">
 <div class="biteHud" id="biteHud" hidden><strong>BRANIE! ZACINAJ!</strong><div class="countdown"><span id="biteFill"></span></div><small>Masz 1 sekundę na reakcję</small></div>
 <div class="fightHud" id="fightHud" hidden>
  <div class="hudTitles"><b>NAPIĘCIE ŻYŁKI</b><span id="tensionVal">38%</span></div>
  <div class="tensionTrack"><div class="tensionPointer" id="tensionPointer"></div></div>
+ <div class="breakWarning" id="breakWarning" hidden role="status"><b>⚠ PUŚĆ! ŻYŁKA POD NAPIĘCIEM</b><span id="breakTime">1,8 s</span></div>
  <div class="hudTitles progressTitle"><b>POSTĘP HOLU</b><span id="fightVal">0%</span></div>
  <div class="progressTrack"><div class="progressFill" id="fightFill"></div></div>
  <small id="fightAdvice">Przytrzymuj i puszczaj „ZWIJAJ” — celuj w zielone pole.</small>
@@ -390,7 +399,7 @@ function setDyn(buf,data){gl.bindBuffer(gl.ARRAY_BUFFER,buf);gl.bufferData(gl.AR
 // Aiming away from the fisherman while placing +Z (mounts) directly UNDER.
 const RIG_AXIS_YAW=.56,RIG_ROLL=RIG_AXIS_YAW-Math.PI,RIG_TILT=-.68;
 const guideY=[2.37,3.67,5.28,6.89,8.21,8.69,9.185],guideZ=[.414,.34,.268,.207,.161,.144,.128];let root=.24,bend=.06,rodSide=0,rootVel=0,bendVel=0,sideVel=0,crank=0,rotor=0,phase='idle',floatPos=[-13.2,-1.07,-19.5],castStart=0,clock=0,clockPrev=performance.now(),rippleStart=performance.now()-5000;
-let biteStart=0,waitingStart=0,fightStart=0,tension=38,catchProgress=0,tooTight=0,tooLoose=0,reeling=false,surge=0,fishPos=[-13.2,-1.07,-19.5],fishDir=[.55,.84],fishSurge=0,fishBreach=0,fishSurfaceChance=0,splashBurst=0,finishAt=0;
+let biteStart=0,waitingStart=0,fightStart=0,tension=38,catchProgress=0,tooTight=0,tooLoose=0,lineOverload=0,breakLimit=1.8,lastWarningSound=-99,reeling=false,surge=0,fishPos=[-13.2,-1.07,-19.5],fishDir=[.55,.84],fishSurge=0,fishBreach=0,fishSurfaceChance=0,splashBurst=0,finishAt=0;
 let currentFishId='perch',currentFishWeight=750,fishEvent='none',carpPreview=false,carpInspectAngle=0,eventStart=0,eventEnds=0,eventNext=0,eventTensionBurst=0,fishJump=0,fishTurning=0;
 // Independent, irregular carp-only surface gestures; full body stays submerged.
 let carpTailStart=-100,carpTailEnd=-100,carpTailNext=1e9,carpTailBeats=1,carpTailLift=0,carpTailSwing=0,carpTailPosition=[0,-1.02,0],carpTailCount=0;
@@ -432,13 +441,26 @@ function reelingRates(){
   catfish:[65+7*part,56+4*part]};
  const [up,down]=pairs[currentFishId]||[40,40];return {up,down};
 }
+// Overload is a skill check, not a random punishment. Let go to recover instantly.
+// Heavy fish make the green target narrower; holding hard outside it can snap the line.
+function dangerThreshold(band){return band.hi+10;}
+function overloadLimit(){return ['carp','grass','catfish'].includes(currentFishId)?1.65:1.85;}
+function updateLineOverload(dt,band){
+ breakLimit=overloadLimit();
+ const danger=reeling&&tension>dangerThreshold(band);
+ if(danger)lineOverload=Math.min(breakLimit+.1,lineOverload+dt);
+ else lineOverload=Math.max(0,lineOverload-dt*(reeling?1.85:3.6));
+ // Legacy diagnostic variables preserved, but low tension never snaps the line.
+ tooTight=lineOverload;
+ tooLoose=tension<9?tooLoose+dt:Math.max(0,tooLoose-dt*1.6);
+}
 function advanceFightMechanics(dt,force,run,small){
  const fish=FISH[currentFishId],band=tensionWindow(),rates=reelingRates();
  if(small){
   // Sub-1 kg: very forgiving; a player can reel steadily without breaking the line.
   tension=clamp(tension+(reeling?rates.up:-rates.down)*dt,29,62);
   if(reeling)catchProgress=clamp(catchProgress+36*dt,0,100);
-  tooTight=0;tooLoose=0;return;
+  tooTight=0;tooLoose=0;lineOverload=0;return;
  }
  // Physical surges remain visible in 3D, but no longer overpower the player's input.
  const fishPressure=clamp(force*.12,0,8);
@@ -463,8 +485,7 @@ function advanceFightMechanics(dt,force,run,small){
   if(loss>0){catchProgress-=loss;runLostThisEvent+=loss;}
  }
  catchProgress=clamp(catchProgress,0,100);
- tooTight=tension>91?tooTight+dt:Math.max(0,tooTight-dt*2);
- tooLoose=tension<9?tooLoose+dt:Math.max(0,tooLoose-dt*1.6);
+ updateLineOverload(dt,band);
 }
 
 function fishRenderScale(){const base={roach:.40,perch:.62,rudd:.50,crucian:.58,tench:.62,pike:1.04,zander:.96,carp:1.23,grass:1.26,catfish:1.66};const f=FISH[currentFishId],portion=clamp((currentFishWeight-f.weightLo)/Math.max(1,f.weightHi-f.weightLo),0,1);return base[currentFishId]*(.83+portion*.25);}
@@ -571,6 +592,32 @@ carpPreviewBtn.addEventListener('click',()=>{
 
 function buttonState(label,disabled=false,css=''){actionBtn.textContent=label;actionBtn.disabled=disabled;actionBtn.classList.toggle('reeling',css==='reeling');actionBtn.classList.toggle('hook',css==='hook');}
 const tensionTrack=document.querySelector('.tensionTrack');
+const breakWarning=document.getElementById('breakWarning'),breakTime=document.getElementById('breakTime');
+// Tiny generated chime, not an external sound file. Browsers unlock it only after a press.
+let warningAudio=null,warningSoundEnabled=false;
+function unlockWarningSound(){
+ try{
+  const AudioContextCtor=window.AudioContext||window.webkitAudioContext;
+  if(!AudioContextCtor)return;
+  if(!warningAudio)warningAudio=new AudioContextCtor();
+  if(warningAudio.state==='suspended')warningAudio.resume().catch(()=>{});
+  warningSoundEnabled=true;
+ }catch(_){warningSoundEnabled=false;}
+}
+function playLineWarning(){
+ if(!warningAudio||!warningSoundEnabled||warningAudio.state!=='running'||clock-lastWarningSound<.68)return;
+ lastWarningSound=clock;
+ try{
+  const start=warningAudio.currentTime,osc=warningAudio.createOscillator(),vol=warningAudio.createGain();
+  osc.type='sine';osc.frequency.setValueAtTime(640,start);
+  osc.frequency.exponentialRampToValueAtTime(860,start+.13);
+  vol.gain.setValueAtTime(.0001,start);
+  vol.gain.exponentialRampToValueAtTime(.035,start+.018);
+  vol.gain.exponentialRampToValueAtTime(.0001,start+.16);
+  osc.connect(vol);vol.connect(warningAudio.destination);
+  osc.start(start);osc.stop(start+.17);osc.onended=()=>{osc.disconnect();vol.disconnect()};
+ }catch(_){/* No sound when AudioContext cannot run: warnings stay visual. */}
+}
 function hudUpdate(){
  fightHud.hidden=phase!=='fight';biteHud.hidden=phase!=='bite';
  const band=tensionWindow(),key=band.lo.toFixed(2)+'-'+band.hi.toFixed(2);
@@ -582,7 +629,14 @@ function hudUpdate(){
  tensionPointer.style.left=clamp(tension,1,99)+'%';tensionVal.textContent=Math.round(tension)+'%';
  fightVal.textContent=Math.round(catchProgress)+'%';fightFill.style.width=catchProgress+'%';
  const green=tension>=band.lo&&tension<=band.hi;
- document.getElementById('fightAdvice').textContent=tension>91?'Uwaga! Puść, żeby nie zerwać żyłki!':
+ const lineDanger=phase==='fight'&&!isSmallCatch()&&reeling&&tension>dangerThreshold(band);
+ fightHud.classList.toggle('lineDanger',lineDanger);
+ breakWarning.hidden=!lineDanger;
+ if(lineDanger){
+  breakTime.textContent=Math.max(0,breakLimit-lineOverload).toFixed(1).replace('.',',')+' s';
+  if(lineOverload>.08)playLineWarning();
+ }
+ document.getElementById('fightAdvice').textContent=lineDanger?'⚠ Puść przycisk! Za duże napięcie — żyłka zaraz pęknie!':
   tension>band.hi?'Za mocno! Puść przycisk.':tension<band.lo?'Za luźno! Przytrzymaj „ZWIJAJ”.':
   fishEvent==='run'?'Odjazd ryby! Utrzymaj zielone pole.':
   green&&reeling?'Dobrze! Utrzymuj zielone pole.':'Zielone pole — przytrzymaj „ZWIJAJ”.';
@@ -594,7 +648,7 @@ else if(next==='waiting'){buttonState('OCZEKIWANIE NA BRANIE…',true);setLabel(
 else if(next==='bite'){buttonState('⚡ ZACINAJ!',false,'hook');setLabel('BRANIE!','Masz 1 sekundę na zacięcie!','Ryba bierze!');}
 else if(next==='fight'){buttonState('🎣 ZWIJAJ — PRZYTRZYMAJ',false,'reeling');setLabel('RYBA NA HAKU!','Holuj rybę i kontroluj napięcie żyłki','Hol — '+(isSmallCatch()?'Bardzo łatwy':FISH[currentFishId].difficulty));}
 else if(next==='win'){document.getElementById('progress').style.display='none';buttonState('🎣 ZARZUĆ PONOWNIE');setLabel('RYBA ZŁOWIONA!','Udany hol: '+FISH[currentFishId].label+' — '+formatWeight(currentFishWeight)+' (demo bez nagród)','Udany połów');}
-else if(next==='lost'){buttonState('↻ SPRÓBUJ PONOWNIE');setLabel('RYBA UCIEKŁA!','Spróbuj jeszcze raz — pilnuj napięcia żyłki','Nieudany hol');}
+else if(next==='lost'){buttonState('↻ SPRÓBUJ PONOWNIE');setLabel('ŻYŁKA ZERWANA!','Za długo utrzymywałeś zbyt duże napięcie. Spróbuj ponownie.','Nieudany hol');}
 else if(next==='miss'){buttonState('↻ SPRÓBUJ PONOWNIE');setLabel('NIE UDAŁO SIĘ ZACIĄĆ','Spławik zniknął — brak reakcji w ciągu 1 sekundy','Spóźnione zacięcie');}
 hudUpdate();updateCarpPreviewUI();}
 function hook(){if(phase!=='bite')return;if(clock-biteStart>1){setPhase('miss');return;}fightStart=clock;tension=50;catchProgress=0;runLostThisEvent=0;finalRunTriggered=false;
@@ -603,7 +657,7 @@ fishEvent='none';eventStart=0;eventEnds=0;eventNext=isSmallCatch()?1e9:currentFi
  carpTailNext=currentFishId==='carp'?clock+2.6+Math.random()*3.3:1e9;
  carpBoilStart=-100;carpBoilNext=currentFishId==='carp'?clock+1.9+Math.random()*3:1e9;
  carpRunCount=0;carpJerkCount=0;carpRunIntensity=0;
-tooTight=0;tooLoose=0;rootVel=0;bendVel=0;sideVel=0;rodSide=0;if(currentFishId==='carp')bend=Math.max(bend,.30);splashBurst=clock;fishPos=[...fpTarget];fishDir=[.55,.84];fishSurge=1;fishBreach=0;fishSurfaceChance=0;rippleStart=performance.now();setPhase('fight');const cam=getCamera(clock);const vp=mul(perspective(.88,screenSize(),.12,280),lookAt(cam.eye,cam.target));updateRodPullDirection(1,vp,true);}
+tooTight=0;tooLoose=0;lineOverload=0;lastWarningSound=-99;rootVel=0;bendVel=0;sideVel=0;rodSide=0;if(currentFishId==='carp')bend=Math.max(bend,.30);splashBurst=clock;fishPos=[...fpTarget];fishDir=[.55,.84];fishSurge=1;fishBreach=0;fishSurfaceChance=0;rippleStart=performance.now();setPhase('fight');const cam=getCamera(clock);const vp=mul(perspective(.88,screenSize(),.12,280),lookAt(cam.eye,cam.target));updateRodPullDirection(1,vp,true);}
 let holdPointer=false,holdTouch=false,holdKey=false,suppressReelClick=false;
 function syncReeling(){reeling=phase==='fight'&&(holdPointer||holdTouch||holdKey);}
 function stopReeling(){holdPointer=false;holdTouch=false;holdKey=false;reeling=false;}
@@ -810,7 +864,7 @@ chooseFish();
 castStart=clock;document.getElementById('progress').style.display='block';setPhase('cast');}
 // Hold-to-reel supports Safari touch events as well as mouse and stylus.
 // A touch press is kept until touchend; Safari can cancel pointer capture early.
-actionBtn.addEventListener('pointerdown',e=>{
+actionBtn.addEventListener('pointerdown',e=>{unlockWarningSound();
  if(phase!=='fight'){suppressReelClick=false;return;}
  e.preventDefault();suppressReelClick=true;holdPointer=true;syncReeling();
  try{actionBtn.setPointerCapture?.(e.pointerId);}catch(_e){}
@@ -818,7 +872,7 @@ actionBtn.addEventListener('pointerdown',e=>{
 actionBtn.addEventListener('pointerup',stopReeling);
 actionBtn.addEventListener('pointercancel',()=>{holdPointer=false;suppressReelClick=false;syncReeling()});
 actionBtn.addEventListener('lostpointercapture',()=>{holdPointer=false;syncReeling()});
-actionBtn.addEventListener('touchstart',e=>{
+actionBtn.addEventListener('touchstart',e=>{unlockWarningSound();
  if(phase!=='fight')return;
  e.preventDefault();suppressReelClick=true;holdTouch=true;syncReeling();
 },{passive:false});
@@ -828,7 +882,7 @@ actionBtn.addEventListener('click',playerAction);
 window.addEventListener('pointerup',stopReeling);
 window.addEventListener('touchend',()=>{holdTouch=false;holdPointer=false;syncReeling()},{passive:true});
 window.addEventListener('blur',stopReeling);
-window.addEventListener('keydown',e=>{if(e.code==='Space'){if(e.repeat)return;e.preventDefault();if(phase==='fight'){holdKey=true;syncReeling();}else playerAction();}});
+window.addEventListener('keydown',e=>{if(e.code==='Space'){unlockWarningSound();if(e.repeat)return;e.preventDefault();if(phase==='fight'){holdKey=true;syncReeling();}else playerAction();}});
 window.addEventListener('keyup',e=>{if(e.code==='Space'){holdKey=false;syncReeling();}});
 canvas.addEventListener('pointerdown',e=>{drag={id:e.pointerId,x:e.clientX,y:e.clientY};canvas.setPointerCapture(e.pointerId);});canvas.addEventListener('pointermove',e=>{if(!drag||drag.id!==e.pointerId)return;if(carpPreview||(phase==='win'&&currentFishId==='carp'))carpInspectAngle+=(e.clientX-drag.x)*.012;else{yaw=clamp(yaw+(e.clientX-drag.x)*.0019,.36,.93);pitch=clamp(pitch+(e.clientY-drag.y)*.0013,-.07,.22);}drag.x=e.clientX;drag.y=e.clientY;});canvas.addEventListener('pointerup',()=>drag=null);canvas.addEventListener('pointercancel',()=>drag=null);
 window.addEventListener('resize',()=>{});
@@ -932,12 +986,15 @@ if(phase==='fight'){
   }else{
    b=clamp(small?.155+.012*Math.sin(age*3):.22+load*(.23+weightDrive*.26)+kick*.07+longPull+strike+rodFlutter,.10,1.05);
   }
+ // Under imminent overload the blank loads a little more, without changing
+ // the approved direction-steering or the only central POV camera.
+ if(lineOverload>.05) b=clamp(b+.09*clamp01(lineOverload/breakLimit),.10,1.18);
  updateRodPullDirection(dt,vp);
   // Subtle vibrations still modulate the rod load; they never steer it
   // left or right against the line leading to the hooked fish.
   sideTarget=0;
  if(catchProgress>=100){finishAt=clock;setPhase('win');stopReeling();}
- else if(tooTight>1.0||tooLoose>2.5){finishAt=clock;setPhase('lost');stopReeling();}
+ else if(lineOverload>=breakLimit){finishAt=clock;setPhase('lost');stopReeling();}
 }
 if(phase==='win'||phase==='lost'){r=.26+.018*Math.sin(clock*1.3);b=.09+Math.max(0,.19-(clock-finishAt)*.3);}
  if(phase!=='fight')updateRodPullDirection(dt,vp);
@@ -975,7 +1032,7 @@ gl.uniform1f(mLoc.carpShowScale,1.01);gl.uniform3fv(mLoc.carpCenter,new Float32A
 const viewFromTail=unit([cam.eye[0]-carpTailPosition[0],cam.eye[2]-carpTailPosition[2]]);
 const tailFacing=[viewFromTail[1],-viewFromTail[0]];
 gl.uniform3fv(mLoc.carpTailAnchor,new Float32Array(carpTailPosition));gl.uniform2fv(mLoc.carpTailFacing,new Float32Array(tailFacing));
-if(phase==='fight'&&currentFishId!=='carp')activateMesh(surfaceFish);
+if(phase==='fight'&&currentFishId!=='carp'&&!isSmallCatch()&&!['roach','perch','rudd','crucian','tench'].includes(currentFishId))activateMesh(surfaceFish);
 if(carpTailBreach){gl.uniform1f(mLoc.carpTailOnly,1);activateMesh(carpTail3D);gl.uniform1f(mLoc.carpTailOnly,0);}
 if(carpShow){activateMesh(carpBody3D);activateMesh(carpTail3D);}
 if(phase==='cast'||phase==='waiting'||phase==='bite'||phase==='miss')activateMesh(floatMesh);
@@ -993,7 +1050,7 @@ if(phase!=='idle'&&(phase!=='cast'||elapsed>1.9)){
    if(currentFishId!=='carp'||!carpTailBreach)drawSplash();
  }
 }
-window.__carprideSceneState={loaded:true,scenery,approvedBackdropLoaded:!!skyReady,phase,waterAnimated:true,rod3d:true,fl3d:true,rigRoll:RIG_ROLL,visibleGuides:7,guideY:[...guideY],floatVisible:['cast','waiting','bite','miss'].includes(phase),rotor,crank,root,bend,rodSide,rootVelocity:rootVel,bendVelocity:bendVel,float:[...floatPos],tension,catchProgress,reeling,tensionWindow:tensionWindow(),runLostThisEvent,finalRunTriggered,selectedFish:currentFishId,fishWeightGrams:currentFishWeight,fishEvent,fishJump,fishPosition:[...fishPos],fishDirection:[...fishDir],fishBreach,fishSurfaceChance,surfaceFish3d:true,carp3d:true,carpPreview:carpShow,carpTailAboveWater:carpTailBreach,carpTailCount,carpTailNext,carpTailLift,carpTailSwing,carpTailBeats,carpTailPosition:[...carpTailPosition],carpBoilActive:currentFishId==='carp'&&clock-carpBoilStart<1.65,carpRunCount,carpJerkCount,carpRunIntensity,rodTargetBend,rodPullDirection:[...rodPullDir],rodTipScreen:[...rodTipScreen],rodSafetyClamped,rodFishScreen:[...rodFishScreen],rodTargetSide,rodSideMatch,rodFlexProfile:'fish-position-screen-steer-v2.7.4',carpTriangles:(carpBody3D.count+carpTail3D.count)/3,wake3d:phase==='fight',fps:Math.round(1/Math.max(dt,.001)),view:'pov',triangles:rod.count/3+waterInd.length/3};requestAnimationFrame(render);
+window.__carprideSceneState={loaded:true,scenery,approvedBackdropLoaded:!!skyReady,phase,waterAnimated:true,rod3d:true,fl3d:true,rigRoll:RIG_ROLL,visibleGuides:7,guideY:[...guideY],floatVisible:['cast','waiting','bite','miss'].includes(phase),rotor,crank,root,bend,rodSide,rootVelocity:rootVel,bendVelocity:bendVel,float:[...floatPos],tension,catchProgress,reeling,tensionWindow:tensionWindow(),runLostThisEvent,finalRunTriggered,lineOverload,breakLimit,overloadDanger:reeling&&tension>dangerThreshold(tensionWindow()),selectedFish:currentFishId,fishWeightGrams:currentFishWeight,fishEvent,fishJump,fishPosition:[...fishPos],fishDirection:[...fishDir],fishBreach,fishSurfaceChance,surfaceFish3d:true,carp3d:true,carpPreview:carpShow,carpTailAboveWater:carpTailBreach,carpTailCount,carpTailNext,carpTailLift,carpTailSwing,carpTailBeats,carpTailPosition:[...carpTailPosition],carpBoilActive:currentFishId==='carp'&&clock-carpBoilStart<1.65,carpRunCount,carpJerkCount,carpRunIntensity,rodTargetBend,rodPullDirection:[...rodPullDir],rodTipScreen:[...rodTipScreen],rodSafetyClamped,rodFishScreen:[...rodFishScreen],rodTargetSide,rodSideMatch,rodFlexProfile:'fish-position-screen-steer-v2.7.4',carpTriangles:(carpBody3D.count+carpTail3D.count)/3,wake3d:phase==='fight',fps:Math.round(1/Math.max(dt,.001)),view:'pov',triangles:rod.count/3+waterInd.length/3};requestAnimationFrame(render);
 }
 window.__carprideScene={cast,hook,previewCarp:()=>{fishSelect.value='carp';carpPreview=true;updateCarpPreviewUI();},getState:()=>window.__carprideSceneState,debugBite:()=>{biteStart=clock;setPhase('bite')},debugFight:()=>{biteStart=clock;setPhase('bite');hook()},debugSelectFish:(id,weight)=>{
  if(!FISH[id])return false;

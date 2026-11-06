@@ -72,7 +72,7 @@
 .soundToggle{cursor:pointer;touch-action:manipulation;background:#0d1c27e8;color:#f9e5bd;border:1px solid #ceac79a0;border-radius:10px;font-size:10px;font-weight:850;letter-spacing:.15px;padding:7px 10px;box-shadow:0 3px 10px #0006}
 .soundToggle:focus-visible{outline:2px solid #fbc67c;outline-offset:3px}
 @media(max-width:420px){.soundTools .chip{font-size:9px;padding:6px 9px}.soundToggle{font-size:9px;padding:6px 8px}.top{gap:6px}}
-</style><body><main class="app" id="app"><canvas id="scene" aria-label="Animowana scena 3D — jezioro, wędka, kołowrotek i spławik"></canvas><div class="tint"></div><div class="top"><div><div class="brand">CarpRide<span>Club</span></div><div class="subtitle">FISHING 3D • V2.8.1</div></div><div class="soundTools"><div class="chip">HOL 3D · TEST</div><button type="button" class="soundToggle" id="soundToggle" aria-label="Włącz lub wyłącz dźwięki gry" aria-pressed="true">🔊 DŹWIĘK</button></div></div><div class="hero"><strong id="headline">Gotowy do zarzucenia</strong><small id="detail">Zarzuć zestaw i poczekaj na branie</small></div><div class="castProgress" id="progress"><div id="progressInner"></div></div><div class="credit">WĘDKA + KOŁOWROTEK 3D · BEZ RĄK</div><div class="controls">
+</style><body><main class="app" id="app"><canvas id="scene" aria-label="Animowana scena 3D — jezioro, wędka, kołowrotek i spławik"></canvas><div class="tint"></div><div class="top"><div><div class="brand">CarpRide<span>Club</span></div><div class="subtitle">FISHING 3D • V2.8.2</div></div><div class="soundTools"><div class="chip">HOL 3D · TEST</div><button type="button" class="soundToggle" id="soundToggle" aria-label="Włącz lub wyłącz dźwięki gry" aria-pressed="true">🔊 DŹWIĘK</button></div></div><div class="hero"><strong id="headline">Gotowy do zarzucenia</strong><small id="detail">Zarzuć zestaw i poczekaj na branie</small></div><div class="castProgress" id="progress"><div id="progressInner"></div></div><div class="credit">WĘDKA + KOŁOWROTEK 3D · BEZ RĄK</div><div class="controls">
 <div class="biteHud" id="biteHud" hidden><strong>BRANIE! ZACINAJ!</strong><div class="countdown"><span id="biteFill"></span></div><small>Masz 1 sekundę na reakcję</small></div>
 <div class="fightHud" id="fightHud" hidden>
  <div class="hudTitles"><b>NAPIĘCIE ŻYŁKI</b><span id="tensionVal">38%</span></div>
@@ -409,6 +409,21 @@ let currentFishId='perch',currentFishWeight=750,fishEvent='none',carpPreview=fal
 // Independent, irregular carp-only surface gestures; full body stays submerged.
 let carpTailStart=-100,carpTailEnd=-100,carpTailNext=1e9,carpTailBeats=1,carpTailLift=0,carpTailSwing=0,carpTailPosition=[0,-1.02,0],carpTailCount=0;
 let carpBoilStart=-100,carpBoilNext=1e9,carpBoilPosition=[0,-1.03,0],carpRunCount=0,carpJerkCount=0;let carpRunIntensity=0,rodTargetBend=.09;let runLostThisEvent=0,finalRunTriggered=false;
+// v2.8.2: three guaranteed-but-randomized milestones for the carp, then a final run.
+// Trigger each milestone only once per fight, and never at a random unrelated progress value.
+const CARP_RUN_WINDOWS=[[10,25],[35,50],[60,75]];
+let carpRunMarkers=[];
+const CAST_RELEASE_AT=1.02,CAST_LAND_AT=2.10;
+let castReleased=false,castReleasePos=null,castWhooshPlayed=false;
+function makeCarpRunMarkers(){return CARP_RUN_WINDOWS.map(([lo,hi])=>({lo,hi,threshold:lo+2+Math.random()*(hi-lo-4),done:false}));}
+function startCarpRun(age,final=false){
+ fishEvent='run';eventStart=age;
+ eventEnds=age+(final?3.05+Math.random()*.5:2.65+Math.random()*.65);
+ eventNext=eventEnds+3.7+Math.random()*1.8;
+ runLostThisEvent=0;carpRunIntensity=0;
+ carpRunCount++;bendVel+=.66;rootVel+=.09;
+ if(final)finalRunTriggered=true;
+}
 let rodPullDir=[-1,0],rodSafetyClamped=false,rodTipScreen=[.5,.3];
 
 // Approved roster: ranges in grams and original draw percentages (sum = 100).
@@ -471,7 +486,8 @@ function advanceFightMechanics(dt,force,run,small){
  const fishPressure=clamp(force*.12,0,8);
  tension=clamp(tension+((reeling?rates.up+run*5:-rates.down)+fishPressure)*dt,0,100);
  const inGreen=tension>=band.lo&&tension<=band.hi;
- if(reeling&&inGreen){
+ if(reeling&&inGreen&&fishEvent!=='run'){
+  // On a run the spool pays line out: keeping green cannot gain catch progress.
   // Keep the indicator in the actual green field, not anywhere in a broad fixed range.
   const gain=currentFishId==='carp'?15:currentFishId==='grass'?14:currentFishId==='catfish'?12:fish.progress*1.2;
   catchProgress+=gain*dt*(1-.13*run);
@@ -484,8 +500,8 @@ function advanceFightMechanics(dt,force,run,small){
  }
  if(run>0){
   // Fixed budget per run: even a carp's strongest run cannot erase the whole fight.
-  const maxLoss=currentFishId==='carp'?6:currentFishId==='grass'?7:currentFishId==='catfish'?8:3;
-  const rate=currentFishId==='carp'?1.75:currentFishId==='grass'?2:currentFishId==='catfish'?2.15:.92;
+  const maxLoss=currentFishId==='carp'?3.8:currentFishId==='grass'?6:currentFishId==='catfish'?7:3;
+  const rate=currentFishId==='carp'?1.45:currentFishId==='grass'?1.9:currentFishId==='catfish'?2:.92;
   const loss=Math.min(maxLoss-runLostThisEvent,run*rate*dt*(inGreen?.60:1));
   if(loss>0){catchProgress-=loss;runLostThisEvent+=loss;}
  }
@@ -606,8 +622,8 @@ function createFishingAudio(){
  let ctx=null,master=null,reelLoop=null,dragLoop=null;
  let enabled=true,active=false,priorSplash=-Infinity,lastCreak=-99;
  let lastBeep=-99,lastCastSplash=-99,lastBreak=-99;
- let waterSamples=[],snapSample=null,creakSample=null;
- let dragLevel=0,reelLevel=0,playCounts={splash:0,drag:0,reel:0,creak:0,snap:0,warning:0};
+ let waterSamples=[],snapSample=null,creakSample=null,castWhistleSample=null;
+ let dragLevel=0,reelLevel=0,playCounts={splash:0,castWhistle:0,drag:0,reel:0,creak:0,snap:0,warning:0};
  // Deterministic foley textures: percussive ratchet teeth, gear friction, water and carbon/line creaks.
  function prng(seed){let state=seed>>>0;return ()=>{state=(1664525*state+1013904223)>>>0;return state/4294967296;};}
  function asBuffer(data){const b=ctx.createBuffer(1,data.length,ctx.sampleRate);b.copyToChannel(data,0);return b;}
@@ -633,22 +649,49 @@ function createFishingAudio(){
   }
   return asBuffer(out);
  }
- function waterBuffer(seed){
-  const rate=ctx.sampleRate,n=Math.floor(rate*1.12),out=new Float32Array(n),rnd=prng(seed);
-  let low=0,mid=0;
-  for(let i=0;i<n;i++){
-   const t=i/rate,white=rnd()*2-1;
-   low=low*.975+white*.025;
-   mid=mid*.72+white*.28;
-   // Real splashes combine a sharp slap, middle fizz and descending bubbly resonance.
-   const slap=Math.exp(-Math.pow((t-.025)/.020,2))*.45;
-   const wash=Math.exp(-Math.max(0,t-.045)*6.2)*Math.min(1,t*42)*.56;
-   const drips=(Math.exp(-Math.pow((t-.21)/.034,2))*.20+Math.exp(-Math.pow((t-.39)/.043,2))*.13);
-   const bubbles=Math.sin(2*Math.PI*(380*t-315*t*t))*.08*Math.exp(-t*5.3);
-   out[i]=Math.max(-.88,Math.min(.88,(white*.20+mid*.66+low*.82)*(slap+wash+drips)+bubbles));
+  function waterBuffer(seed){
+   // Light surface water, not a flat percussive slap: tiny plip, soft foam and droplets.
+   // Remove low-frequency thumps; three variations prevent repetition sounding like a sample.
+   const rate=ctx.sampleRate,n=Math.floor(rate*.72),out=new Float32Array(n),rnd=prng(seed);
+   let soft=0,air=0;
+   const bubbles=[
+    {at:.028,hz:360+seed%65,decay:29,level:.095},
+    {at:.116,hz:455+(seed%79),decay:35,level:.051},
+    {at:.232,hz:620+(seed%83),decay:48,level:.025}
+   ];
+   for(let i=0;i<n;i++){
+    const t=i/rate,w=rnd()*2-1;
+    soft=.955*soft+.045*w;
+    const airy=w-soft;
+    air=.87*air+.13*airy;
+    const foam=(air*.28+airy*.035)*Math.min(1,t*45)*Math.exp(-t*11);
+    let plips=0;
+    for(const b of bubbles){
+     const u=t-b.at;if(u<0)continue;
+     const phase=2*Math.PI*(b.hz*u-165*u*u);
+     plips+=b.level*Math.sin(phase)*Math.exp(-b.decay*u)*(1-Math.exp(-u*220));
+    }
+    // No bass impact. A close small splash is an airy 'psh-plip'.
+    out[i]=Math.max(-.25,Math.min(.25,foam*.46+plips));
+   }
+   return asBuffer(out);
   }
-  return asBuffer(out);
- }
+  function castWhistleBuffer(){
+   // Air flowing past the line/rod during the forward casting stroke.
+   // Band-limited airy noise with a gentle falling frequency; not a sci-fi oscillator.
+   const rate=ctx.sampleRate,n=Math.floor(rate*.55),out=new Float32Array(n),rnd=prng(8371);
+   let slow=0,fast=0;
+   for(let i=0;i<n;i++){
+    const t=i/rate,u=t/.55,w=rnd()*2-1;
+    const slowK=.07+.045*u,fastK=.36+.03*u;
+    slow+=(w-slow)*slowK;fast+=(w-fast)*fastK;
+    const band=fast-slow;
+    const envelope=Math.pow(Math.sin(Math.PI*Math.min(1,u)),1.35)*(1-.35*u);
+    const airyTone=.018*Math.sin(2*Math.PI*(1650*t-470*t*t))*envelope;
+    out[i]=Math.max(-.22,Math.min(.22,band*.14*envelope+airyTone));
+   }
+   return asBuffer(out);
+  }
  function snapBuffer(){
   const rate=ctx.sampleRate,n=Math.floor(rate*.47),out=new Float32Array(n),rnd=prng(4199);
   let soft=0;
@@ -687,7 +730,7 @@ function createFishingAudio(){
    dragLoop=createLoop(ratchetBuffer('drag'));reelLoop=createLoop(ratchetBuffer('reel'));
    dragLoop.filter.frequency.value=3850;reelLoop.filter.frequency.value=2600;
    waterSamples=[waterBuffer(1124),waterBuffer(894),waterBuffer(2775)];
-   snapSample=snapBuffer();creakSample=creakBuffer();
+   snapSample=snapBuffer();creakSample=creakBuffer();castWhistleSample=castWhistleBuffer();
    return true;
   }catch(e){console.warn('CarpRide audio unavailable',e);ctx=null;return false;}
  }
@@ -710,7 +753,7 @@ function createFishingAudio(){
  function splash(intensity=.5,pan=0){
   if(!ctx||!enabled||ctx.state!=='running')return;
   const index=(playCounts.splash++)%waterSamples.length;
-  play(waterSamples[index],.16+.29*Math.max(0,Math.min(1,intensity)),.87+((index%3)*.11),pan);
+  play(waterSamples[index],.12+.11*Math.max(0,Math.min(1,intensity)),.94+((index%3)*.055),pan);
  }
  function warning(){
   if(!ctx||!enabled||ctx.state!=='running'||clock-lastBeep<.7)return;
@@ -726,7 +769,13 @@ function createFishingAudio(){
   lastBreak=clock;playCounts.snap++;play(snapSample,.60,1,0);
   if(ctx&&dragLoop&&reelLoop){dragLoop.gain.gain.setTargetAtTime(0,ctx.currentTime,.012);reelLoop.gain.gain.setTargetAtTime(0,ctx.currentTime,.012);}
  }
- function castSplash(){if(clock-lastCastSplash>.5){lastCastSplash=clock;splash(.20,-.22);}}
+  function castSplash(){if(clock-lastCastSplash>.5){lastCastSplash=clock;splash(.12,-.22);}}
+  function castWhistle(){
+   unlock();
+   if(!ctx||!enabled||ctx.state!=='running')return;
+   playCounts.castWhistle++;
+   play(castWhistleSample,.38,1,-.10);
+  }
  function update(data){
   // Keep event tracking in sync even when sound is disabled, to avoid belated splashes.
   const soundNewSplash=Number.isFinite(data.splashBurst)&&data.splashBurst!==priorSplash;
@@ -735,7 +784,7 @@ function createFishingAudio(){
   const fighting=data.phase==='fight';
   const heavy=Math.min(1,Math.max(0,((data.weight||1000)/1000-1)/23));
   const run=Math.min(1,Math.max(0,data.run||0));
-  const crank=fighting&&data.reeling;
+  const crank=fighting&&data.reeling&&!data.runActive;
   const drag=fighting&&run>.08;
   // Low load when a small fish is hooked; aggressive but believable ratchet on a 20+ kg carp.
   const dg=enabled&&drag?(.025+.13*run*(.55+.45*heavy)):0;
@@ -773,7 +822,7 @@ function createFishingAudio(){
  try{enabled=localStorage.getItem('carprideSoundEnabled')!=='0';}catch(_){}
  syncButton();
  if(button)button.addEventListener('click',()=>setEnabled(!enabled));
- return {unlock,update,warning,lineBreak,castSplash,setEnabled,getState:()=>({supported:!!AudioCtor,created:!!ctx,state:ctx?ctx.state:'not-started',enabled,dragLevel,reelingActive:!!reelLevel,events:{...playCounts}})};
+ return {unlock,update,warning,lineBreak,castSplash,castWhistle,setEnabled,getState:()=>({supported:!!AudioCtor,created:!!ctx,state:ctx?ctx.state:'not-started',enabled,dragLevel,reelingActive:!!reelLevel,events:{...playCounts}})};
 }
 const fishingAudio=createFishingAudio();
 // The existing overload warning now shares the single audio engine and mute setting.
@@ -799,7 +848,7 @@ function hudUpdate(){
  }
  document.getElementById('fightAdvice').textContent=lineDanger?'⚠ Puść przycisk! Za duże napięcie — żyłka zaraz pęknie!':
   tension>band.hi?'Za mocno! Puść przycisk.':tension<band.lo?'Za luźno! Przytrzymaj „ZWIJAJ”.':
-  fishEvent==='run'?'Odjazd ryby! Utrzymaj zielone pole.':
+  fishEvent==='run'?'ODJAZD! Kołowrotek nie przyciąga ryby — poczekaj i kontroluj napięcie.':
   green&&reeling?'Dobrze! Utrzymuj zielone pole.':'Zielone pole — przytrzymaj „ZWIJAJ”.';
  if(phase==='bite')biteFill.style.width=100*clamp01(1-(clock-biteStart)/1)+'%';
 }
@@ -812,7 +861,7 @@ else if(next==='win'){document.getElementById('progress').style.display='none';b
 else if(next==='lost'){buttonState('↻ SPRÓBUJ PONOWNIE');setLabel('ŻYŁKA ZERWANA!','Za długo utrzymywałeś zbyt duże napięcie. Spróbuj ponownie.','Nieudany hol');}
 else if(next==='miss'){buttonState('↻ SPRÓBUJ PONOWNIE');setLabel('NIE UDAŁO SIĘ ZACIĄĆ','Spławik zniknął — brak reakcji w ciągu 1 sekundy','Spóźnione zacięcie');}
 hudUpdate();updateCarpPreviewUI();}
-function hook(){if(phase!=='bite')return;if(clock-biteStart>1){setPhase('miss');return;}fightStart=clock;tension=50;catchProgress=0;runLostThisEvent=0;finalRunTriggered=false;
+function hook(){if(phase!=='bite')return;if(clock-biteStart>1){setPhase('miss');return;}fightStart=clock;tension=50;catchProgress=0;runLostThisEvent=0;finalRunTriggered=false;carpRunMarkers=makeCarpRunMarkers();
 fishEvent='none';eventStart=0;eventEnds=0;eventNext=isSmallCatch()?1e9:currentFishId==='carp'?1.8+Math.random()*1.6:2.0;eventTensionBurst=0;fishJump=0;fishTurning=0;
  carpTailStart=-100;carpTailEnd=-100;carpTailLift=0;carpTailSwing=0;carpTailCount=0;
  carpTailNext=currentFishId==='carp'?clock+2.6+Math.random()*3.3:1e9;
@@ -982,10 +1031,34 @@ function stepRodDynamics(targetRoot,targetBend,targetSide,dt){
  rodSide=clamp(rodSide,-.88,.88);
 }
 function rollerPos(t){let pivot=[0,-.30,.2],base=[.91,-.345,1.22],dx=base[0]-pivot[0],dy=base[1]-pivot[1],x=pivot[0]+Math.cos(t)*dx-Math.sin(t)*dy,y=pivot[1]+Math.sin(t)*dx+Math.cos(t)*dy;return dPoint([x*.45,1.37+base[2]*.45,.75-y*.45],root,0);}
-function wirePoints(){const pts=[rollerPos(rotor)];for(let i=0;i<guideY.length;i++)pts.push(dPoint([0,guideY[i],guideZ[i]],root,bend));const tip=pts[pts.length-1];if(phase==='idle')return new Float32Array(pts.flat());// During the vertical leap the line follows the hooked fish up out of the water.
-const sizeNow=fishRenderScale();
-const lineLift=(phase==='fight'?fishJump:0);
-const target=phase==='fight'||phase==='win'||phase==='lost'?[fishPos[0]+fishDir[0]*lineLift*.24,-1.04+lineLift*sizeNow*2.55,fishPos[2]+fishDir[1]*lineLift*.24]:[floatPos[0],floatPos[1]+.94,floatPos[2]];if(phase==='cast'&&clock-castStart<1.2){pts.push([lerp(tip[0],target[0],.42),lerp(tip[1],target[1],.42),lerp(tip[2],target[2],.42)])}pts.push(target);return new Float32Array(pts.flat());}
+function wirePoints(){
+ const pts=[rollerPos(rotor)];
+ for(let i=0;i<guideY.length;i++)pts.push(dPoint([0,guideY[i],guideZ[i]],root,bend));
+ const tip=pts[pts.length-1];
+ if(phase==='idle')return new Float32Array(pts.flat());
+ const sizeNow=fishRenderScale(),lineLift=phase==='fight'?fishJump:0;
+ const target=phase==='fight'||phase==='win'||phase==='lost'
+  ?[fishPos[0]+fishDir[0]*lineLift*.24,-1.04+lineLift*sizeNow*2.55,fishPos[2]+fishDir[1]*lineLift*.24]
+  :[floatPos[0],floatPos[1]+(phase==='cast'?lerp(.10,.94,clamp01((clock-castStart-CAST_RELEASE_AT)/.20)):.94),floatPos[2]];
+ if(phase==='cast'){
+  if(!castReleased){
+   // The float has not left the tip: no long string spanning the whole lake.
+   pts.push([floatPos[0],floatPos[1]+.10,floatPos[2]]);
+  }else{
+   // The line extends in one continuous soft arc, instead of an abrupt kink
+   // that used to follow the moving tip in the first half of the casting swing.
+   const u=clamp01((clock-castStart-CAST_RELEASE_AT)/(CAST_LAND_AT-CAST_RELEASE_AT));
+   for(let j=1;j<=6;j++){
+    const a=j/6,sag=Math.sin(Math.PI*a),end=j===6;
+    pts.push([lerp(tip[0],target[0],a),
+     lerp(tip[1],target[1],a)-(end?0:.21*sag*Math.sin(Math.PI*.5*u)),
+     lerp(tip[2],target[2],a)]);
+   }
+  }
+  return new Float32Array(pts.flat());
+ }
+ pts.push(target);return new Float32Array(pts.flat());
+}
 const zoom=15.3,initialYaw=.56;let yaw=initialYaw,pitch=.06,drag=null;
 // Jedyny widok: środkowe ułożenie wędki z dawnego drugiego trybu kamery.
 // Utrzymujemy jego dokładny punkt obserwacji i kąt (w tym podczas rozglądania).
@@ -1020,9 +1093,13 @@ function drawFishWake(){
 }
 function drawSplash(){const age=phase==='fight'?(clock-splashBurst):(performance.now()-rippleStart)/1000;if(age<0||age>1.3)return;const cen=phase==='fight'?fishPos:floatPos;let pp=[];for(let i=0;i<36;i++){let a=(i*2.399),v=.35+(i%7)*.11,life=(age+((i*7)%13)*.014),rad=Math.sin(life*3.2)*v,up=Math.max(0,life*1.8-life*life*1.9);pp.push(cen[0]+rad*Math.cos(a),-1+up,cen[2]+rad*Math.sin(a))}drawLine(new Float32Array(pp),[.85,.96,.97],gl.POINTS)}
 function setLabel(main,sub,state){document.getElementById('headline').textContent=main;document.getElementById('detail').textContent=sub;document.getElementById('stateName').textContent=state;}
-function cast(){if(phase==='cast'||phase==='fight'||phase==='bite'||phase==='waiting')return;carpPreview=false;updateCarpPreviewUI();stopReeling();
-chooseFish();
-castStart=clock;document.getElementById('progress').style.display='block';setPhase('cast');}
+function cast(){if(phase==='cast'||phase==='fight'||phase==='bite'||phase==='waiting')return;
+ carpPreview=false;updateCarpPreviewUI();stopReeling();
+ chooseFish();
+ castReleased=false;castReleasePos=null;castWhooshPlayed=false;
+ fishingAudio.unlock();
+ castStart=clock;document.getElementById('progress').style.display='block';setPhase('cast');
+}
 // Hold-to-reel supports Safari touch events as well as mouse and stylus.
 // A touch press is kept until touchend; Safari can cancel pointer capture early.
 actionBtn.addEventListener('pointerdown',e=>{unlockWarningSound();
@@ -1051,7 +1128,7 @@ function screenSize(){const dpr=Math.min(window.devicePixelRatio||1,1.6),w=Math.
 let paused=false;gl.enable(gl.DEPTH_TEST);gl.depthFunc(gl.LEQUAL);gl.disable(gl.CULL_FACE);
 function render(now){const rawDt=Math.max(0,(now-clockPrev)/1000),dt=Math.min(rawDt,.15);clockPrev=now;clock+=dt;const elapsed=clock-castStart;
 const aspect=screenSize(),cam=getCamera(clock),vp=mul(perspective(.88,aspect,.12,280),lookAt(cam.eye,cam.target));
-let r=.21+.009*Math.sin(clock*1.55),b=.09+.006*Math.sin(clock*1.9),sideTarget=0;
+let r=.21+.009*Math.sin(clock*1.55),b=.09+.006*Math.sin(clock*1.9),sideTarget=0,runAudioIntensity=0;
 if(phase==='cast'){
  if(elapsed<.65){let t=elapsed/.65;r=lerp(.21,-.12,t*t*(3-2*t));b=.09+.28*t;}
  else if(elapsed<1.45){let t=(elapsed-.65)/.8;r=lerp(-.12,.67,t*t*(3-2*t));b=.35+.44*Math.sin(t*Math.PI);}
@@ -1059,11 +1136,25 @@ if(phase==='cast'){
  else{waitingStart=clock;setPhase('waiting');r=.21;b=.09;document.getElementById('progress').style.display='none';}
 }
 if(phase==='cast'){
-let t=clamp((elapsed-.50)/1.6,0,1);const tip=dPoint([0,9.185,.128],r,b),start=[tip[0]-.12,tip[1]-.25,tip[2]-.14];
-if(t<.01)floatPos=start;
-else{let u=t*t*(3-2*t);floatPos=[lerp(start[0],fpTarget[0],u),lerp(start[1],fpTarget[1],u)+3.9*Math.sin(u*Math.PI),lerp(start[2],fpTarget[2],u)];}
-if(elapsed>=2.1 && elapsed-dt<2.1){rippleStart=performance.now();fishingAudio.castSplash();}
-document.getElementById('progressInner').style.width=Math.min(100,elapsed/2.15*100)+'%';
+ const tip=dPoint([0,9.185,.128],root,bend);
+ if(elapsed<CAST_RELEASE_AT){
+  // Float remains at the tip during the backswing. It cannot jump ahead of the rod.
+  floatPos=[tip[0]-.055,tip[1]-.13,tip[2]-.04];
+ }else{
+  if(!castReleased){
+   castReleased=true;
+   castReleasePos=[tip[0]-.055,tip[1]-.13,tip[2]-.04];
+  }
+  if(!castWhooshPlayed){castWhooshPlayed=true;fishingAudio.castWhistle();}
+  const u=clamp01((elapsed-CAST_RELEASE_AT)/(CAST_LAND_AT-CAST_RELEASE_AT));
+  // The release location is FIXED: the flying float never follows a second rod swing.
+  const arc=Math.sin(Math.PI*u);
+  floatPos=[lerp(castReleasePos[0],fpTarget[0],u),
+            lerp(castReleasePos[1],fpTarget[1],u)+2.7*arc,
+            lerp(castReleasePos[2],fpTarget[2],u)];
+ }
+ if(elapsed>=CAST_LAND_AT && elapsed-dt<CAST_LAND_AT){rippleStart=performance.now();fishingAudio.castSplash();}
+ document.getElementById('progressInner').style.width=Math.min(100,elapsed/2.15*100)+'%';
 }else floatPos=[...fpTarget];
 if(phase==='waiting'&&clock-waitingStart>2.3){biteStart=clock;setPhase('bite');}
 if(phase==='bite'){
@@ -1072,23 +1163,30 @@ if(phase==='bite'){
 }
 if(phase==='fight'){
  const fish=FISH[currentFishId],age=clock-fightStart,small=isSmallCatch();
- if(!small && (currentFishId==='carp'||currentFishId==='grass') && !finalRunTriggered &&
-    catchProgress>=88 && fishEvent==='none'){
-  finalRunTriggered=true;fishEvent='run';eventStart=age;eventEnds=age+2.8+Math.random()*.65;
-  eventNext=eventEnds+7;runLostThisEvent=0;carpRunIntensity=1;
-  if(currentFishId==='carp'){carpRunCount++;bendVel+=.65;rootVel+=.10;}
- }
- else if(!small && age>=eventNext && fishEvent==='none'){
-  if(currentFishId==='carp'){
-   // Carp: sustained runs alternating with compact, powerful blows, not a fixed loop.
-   fishEvent=Math.random()<.55?'run':'carpStrike';
-   const duration=fishEvent==='run'?3.1+Math.random()*1.8:.62+Math.random()*.25;
-   eventStart=age;eventEnds=age+duration;eventNext=eventEnds+3.4+Math.random()*3.9;runLostThisEvent=0;
-   if(fishEvent==='run'){carpRunCount++;bendVel+=.66;rootVel+=.09;}
-   else{carpJerkCount++;bendVel+=1.9;rootVel+=.28;sideVel+=(Math.random()<.5?-1:1)*.75;tension=clamp(tension+3+Math.random()*4,0,93);splashBurst=clock;}
-  }else startFishEvent(age);
- }
- if(fishEvent!=='none'&&age>=eventEnds){
+  // Exactly three progress-driven carp runs (one in each selected window),
+  // plus the one dramatic but balanced final run around 88%.
+  const dueCarpRun=!small&&currentFishId==='carp'&&fishEvent==='none'
+     ?carpRunMarkers.find(m=>!m.done&&catchProgress>=m.threshold):null;
+  if(dueCarpRun){
+   dueCarpRun.done=true;
+   startCarpRun(age);
+  }else if(!small&&currentFishId==='carp'&&!finalRunTriggered&&catchProgress>=88&&fishEvent==='none'){
+   startCarpRun(age,true);
+  }else if(!small&&currentFishId==='grass'&&!finalRunTriggered&&catchProgress>=88&&fishEvent==='none'){
+   finalRunTriggered=true;fishEvent='run';eventStart=age;eventEnds=age+2.8+Math.random()*.65;
+   eventNext=eventEnds+7;runLostThisEvent=0;
+  }else if(!small&&age>=eventNext&&fishEvent==='none'){
+   if(currentFishId==='carp'){
+    // Short strikes can still happen between the scheduled runs,
+    // but never an extra random long run outside the progress windows.
+    fishEvent='carpStrike';
+    eventStart=age;eventEnds=age+.62+Math.random()*.25;
+    eventNext=eventEnds+4.0+Math.random()*3.5;runLostThisEvent=0;
+    carpJerkCount++;bendVel+=1.9;rootVel+=.28;
+    sideVel+=(Math.random()<.5?-1:1)*.75;
+    tension=clamp(tension+3+Math.random()*4,0,93);splashBurst=clock;
+   }else startFishEvent(age);
+  } if(fishEvent!=='none'&&age>=eventEnds){
   if(fishEvent==='jump'){splashBurst=clock;rippleStart=performance.now();}
   fishEvent='none';
  }
@@ -1096,7 +1194,7 @@ if(phase==='fight'){
  const smallTwitch=Math.max(0,Math.sin(age*3.9))**9;
  const kick=small ? smallTwitch*.10 : Math.max(0,Math.sin(age*(2.3+fish.strength*.032)+.7))**9*.33+impact;
  const run=fishEvent==='run'?(currentFishId==='carp'?(()=>{const u=clamp01((age-eventStart)/Math.max(.01,eventEnds-eventStart));return Math.min(1,u/.17, (1-u)/.20);})():impact):0;
-  carpRunIntensity=currentFishId==='carp'?run:0;
+  carpRunIntensity=currentFishId==='carp'?run:0;runAudioIntensity=run;
  const slam=fishEvent==='slam'?impact:0;
  const jerk=fishEvent==='jerk'?impact:0;
  const carpStrike=fishEvent==='carpStrike'?impact:0;
@@ -1105,7 +1203,7 @@ if(phase==='fight'){
  const powerFactor=small?.08:(.75+.25*(currentFishWeight-fish.weightLo)/Math.max(1,fish.weightHi-fish.weightLo));
  const force=small ? 1.3 : fish.strength*(.35+.30*kick)+Math.max(0,Math.sin(age*1.6))*2.7+run*13+slam*63+jerk*18+dart*7+leap*8+carpStrike*30;
  advanceFightMechanics(dt,force,run,small);
- if(reeling){crank+=dt*6.2;rotor+=dt*6.2;} else rotor+=dt*.27;
+ if(reeling&&fishEvent!=='run'){crank+=dt*6.2;rotor+=dt*6.2;} else rotor+=dt*.27;
  const distance=1-catchProgress/100;
  const oldFish=[...fishPos];
  const amplitude=small?.17:(.27+fish.strength*.037);
@@ -1160,7 +1258,7 @@ if(phase==='fight'){
 if(phase==='win'||phase==='lost'){r=.26+.018*Math.sin(clock*1.3);b=.09+Math.max(0,.19-(clock-finishAt)*.3);}
  if(phase!=='fight')updateRodPullDirection(dt,vp);
  rodTargetBend=b;stepRodDynamics(r,b,sideTarget,dt);
-  fishingAudio.update({phase,reeling,run:phase==='fight'?(fishEvent==='run'?carpRunIntensity||eventPower(clock-fightStart):0):0,
+  fishingAudio.update({phase,reeling,runActive:phase==='fight'&&fishEvent==='run',run:runAudioIntensity,
     weight:currentFishWeight,splashBurst,now:clock,overload:lineOverload,bend,
     fishPan:clamp((fishPos[0]+2)/16,-.65,.65)});
   if(phase==='cast')rotor-=dt*.9;
@@ -1214,7 +1312,7 @@ if(phase!=='idle'&&(phase!=='cast'||elapsed>1.9)){
    if(currentFishId!=='carp'||!carpTailBreach)drawSplash();
  }
 }
-window.__carprideSceneState={loaded:true,scenery,approvedBackdropLoaded:!!skyReady,phase,waterAnimated:true,rod3d:true,fl3d:true,rigRoll:RIG_ROLL,visibleGuides:7,guideY:[...guideY],floatVisible:['cast','waiting','bite','miss'].includes(phase),rotor,crank,root,bend,rodSide,rootVelocity:rootVel,bendVelocity:bendVel,float:[...floatPos],tension,catchProgress,reeling,tensionWindow:tensionWindow(),runLostThisEvent,finalRunTriggered,lineOverload,breakLimit,overloadDanger:reeling&&tension>dangerThreshold(tensionWindow()),selectedFish:currentFishId,fishWeightGrams:currentFishWeight,fishEvent,fishJump,fishPosition:[...fishPos],fishDirection:[...fishDir],fishBreach,fishSurfaceChance,surfaceFish3d:true,carp3d:true,carpPreview:carpShow,carpTailAboveWater:carpTailBreach,carpTailCount,carpTailNext,carpTailLift,carpTailSwing,carpTailBeats,carpTailPosition:[...carpTailPosition],carpBoilActive:currentFishId==='carp'&&clock-carpBoilStart<1.65,carpRunCount,carpJerkCount,carpRunIntensity,rodTargetBend,rodPullDirection:[...rodPullDir],rodTipScreen:[...rodTipScreen],rodSafetyClamped,rodFishScreen:[...rodFishScreen],rodTargetSide,rodSideMatch,rodFlexProfile:'fish-position-screen-steer-v2.7.4',carpTriangles:(carpBody3D.count+carpTail3D.count)/3,wake3d:phase==='fight',fps:Math.round(1/Math.max(dt,.001)),view:'pov',triangles:rod.count/3+waterInd.length/3};requestAnimationFrame(render);
+window.__carprideSceneState={loaded:true,scenery,approvedBackdropLoaded:!!skyReady,phase,waterAnimated:true,rod3d:true,fl3d:true,rigRoll:RIG_ROLL,visibleGuides:7,guideY:[...guideY],floatVisible:['cast','waiting','bite','miss'].includes(phase),rotor,crank,root,bend,rodSide,rootVelocity:rootVel,bendVelocity:bendVel,float:[...floatPos],tension,catchProgress,reeling,tensionWindow:tensionWindow(),runLostThisEvent,finalRunTriggered,carpRunMarkers:carpRunMarkers.map(m=>({...m})),castReleased,castFlight:phase==='cast'?clamp01((elapsed-CAST_RELEASE_AT)/(CAST_LAND_AT-CAST_RELEASE_AT)):0,lineOverload,breakLimit,overloadDanger:reeling&&tension>dangerThreshold(tensionWindow()),selectedFish:currentFishId,fishWeightGrams:currentFishWeight,fishEvent,fishJump,fishPosition:[...fishPos],fishDirection:[...fishDir],fishBreach,fishSurfaceChance,surfaceFish3d:true,carp3d:true,carpPreview:carpShow,carpTailAboveWater:carpTailBreach,carpTailCount,carpTailNext,carpTailLift,carpTailSwing,carpTailBeats,carpTailPosition:[...carpTailPosition],carpBoilActive:currentFishId==='carp'&&clock-carpBoilStart<1.65,carpRunCount,carpJerkCount,carpRunIntensity,rodTargetBend,rodPullDirection:[...rodPullDir],rodTipScreen:[...rodTipScreen],rodSafetyClamped,rodFishScreen:[...rodFishScreen],rodTargetSide,rodSideMatch,rodFlexProfile:'fish-position-screen-steer-v2.7.4',carpTriangles:(carpBody3D.count+carpTail3D.count)/3,wake3d:phase==='fight',fps:Math.round(1/Math.max(dt,.001)),view:'pov',triangles:rod.count/3+waterInd.length/3};requestAnimationFrame(render);
 }
 window.__carprideScene={cast,hook,previewCarp:()=>{fishSelect.value='carp';carpPreview=true;updateCarpPreviewUI();},getState:()=>window.__carprideSceneState,debugBite:()=>{biteStart=clock;setPhase('bite')},debugFight:()=>{biteStart=clock;setPhase('bite');hook()},debugSelectFish:(id,weight)=>{
  if(!FISH[id])return false;
@@ -1231,6 +1329,6 @@ window.__carprideScene={cast,hook,previewCarp:()=>{fishSelect.value='carp';carpP
  eventNext=eventEnds+5;
  if(name==='carpStrike'){bendVel+=1.9;rootVel+=.28;}
  return true;
-},debugWeight:(g)=>{currentFishWeight=Math.round(g)},getRoster:()=>FISH,audioState:()=>fishingAudio.getState(),debugAudio:(name)=>{fishingAudio.unlock();if(name==='splash')fishingAudio.castSplash();if(name==='break')fishingAudio.lineBreak();if(name==='warning')fishingAudio.warning();return fishingAudio.getState();}};setPhase('idle');requestAnimationFrame(render);
+},debugWeight:(g)=>{currentFishWeight=Math.round(g)},getRoster:()=>FISH,audioState:()=>fishingAudio.getState(),debugAudio:(name)=>{fishingAudio.unlock();if(name==='splash')fishingAudio.castSplash();if(name==='whistle')fishingAudio.castWhistle();if(name==='break')fishingAudio.lineBreak();if(name==='warning')fishingAudio.warning();return fishingAudio.getState();}};setPhase('idle');requestAnimationFrame(render);
 })()
 </script></body></html>

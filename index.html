@@ -1,4 +1,4 @@
-<!doctype html><html lang="pl"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no"/><meta name="theme-color" content="#0c1822"/><title>CarpRide Fishing 3D — Demo v2.8.0 — zręcznościowy hol i ryzyko zerwania żyłki</title>
+<!doctype html><html lang="pl"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no"/><meta name="theme-color" content="#0c1822"/><title>CarpRide Fishing 3D — Demo v2.8.1 — dźwięki holu</title>
 <style>
 :root{font-family:system-ui,-apple-system,'Segoe UI',Arial,sans-serif;color:#f7f6f2;background:#070d14}*{box-sizing:border-box}html,body{margin:0;height:100%;overscroll-behavior:none}button{font:inherit}body{display:flex;justify-content:center;background:radial-gradient(circle at 50% 40%,#24394b,#09111b 76%)}.app{height:100dvh;width:min(100%,580px);position:relative;isolation:isolate;overflow:hidden;background:#142532}canvas{display:block;position:absolute;inset:0;width:100%;height:100%;touch-action:none}#scene{z-index:1}.tint{position:absolute;z-index:2;inset:0;pointer-events:none;background:linear-gradient(180deg,rgba(4,8,15,.69) 0%,transparent 20%,transparent 61%,rgba(4,9,15,.37) 80%,#08131dd9 100%)}.top{z-index:3;position:absolute;left:0;right:0;top:0;padding:max(env(safe-area-inset-top),15px) 18px 12px;display:flex;align-items:flex-start;justify-content:space-between;gap:12px;pointer-events:none}.brand{font-weight:950;font-size:clamp(21px,5.4vw,28px);font-style:italic;letter-spacing:-1px;text-shadow:0 2px 15px #050b10}.brand span{color:#f04d4b}.subtitle{font-size:10px;letter-spacing:2.25px;font-weight:900;text-transform:uppercase;color:#f7d29c;text-shadow:0 2px 9px #050b10;margin-top:3px}.chip{font-size:11px;font-weight:800;color:#f3e7ce;background:#101b28d9;border:1px solid #dba86480;padding:8px 12px;border-radius:14px;white-space:nowrap;box-shadow:0 8px 25px #0005}.hero{position:absolute;z-index:3;top:calc(max(env(safe-area-inset-top),15px) + 77px);left:20px;pointer-events:none;max-width:265px;text-shadow:0 1px 13px #031019}.hero strong{font-size:clamp(16px,4vw,21px);font-weight:950;display:block}.hero small{display:block;margin-top:3px;font-size:11px;font-weight:600;color:#e6edf0}.controls{position:absolute;z-index:4;bottom:calc(env(safe-area-inset-bottom) + 18px);left:17px;right:17px;display:flex;flex-direction:column;gap:12px}.status{background:#091720c9;backdrop-filter:blur(8px);border:1px solid #e0be8855;border-radius:15px;padding:12px 14px;display:flex;justify-content:space-between;align-items:center;gap:8px}.status .label{font-size:10px;font-weight:850;text-transform:uppercase;letter-spacing:1.6px;color:#f3c78f}.status .text{font-size:13px;color:#eff5f4;font-weight:750;margin-top:3px}.bars{display:flex;gap:4px;align-items:center}.bars i{height:20px;width:5px;border-radius:3px;background:#6bcf9a}.bars i:nth-child(3){height:26px}.bars i:nth-child(4){height:16px}.action{display:flex;gap:10px}.action button{min-height:57px;border-radius:15px;touch-action:none;-webkit-touch-callout:none;-webkit-user-select:none;user-select:none;cursor:pointer;border:1px solid #c6a66a;background:#0d1925e8;color:white;font-weight:900;padding:0 13px;box-shadow:0 8px 23px #0007}.action button.main{flex:1;background:linear-gradient(160deg,#eac27b,#ac7632);color:#161b1d;border:1px solid #ffe9af;font-size:15px;letter-spacing:.6px;box-shadow:0 0 26px #eca44333}.action button.main:active{transform:scale(.985)}.action button[disabled]{opacity:.55}.hint{font-size:10px;color:#e0ddcfaa;text-align:center;line-height:1.4}.error{display:none;position:absolute;inset:auto 20px 34%;z-index:10;background:#5b2029f4;color:white;border:1px solid #fd8888;border-radius:12px;padding:16px;font-size:14px;line-height:1.5}.credit{position:absolute;z-index:3;right:18px;bottom:calc(env(safe-area-inset-bottom) + 185px);font-size:10px;color:#f5edddad;pointer-events:none;letter-spacing:.4px}.castProgress{position:absolute;z-index:3;top:calc(max(env(safe-area-inset-top),15px) + 139px);left:20px;right:20px;height:3px;background:#fffff026;border-radius:10px;overflow:hidden;pointer-events:none;display:none}.castProgress div{height:100%;width:0;background:#ffdb96;box-shadow:0 0 12px #ffd376}@media(min-width:600px){.app{height:min(950px,96dvh);margin:auto;border-radius:26px;border:1px solid #70809266;box-shadow:0 15px 80px #000a}.brand{font-size:27px}}@media(max-height:700px){.hero{top:calc(max(env(safe-area-inset-top),10px) + 62px)}.credit{bottom:160px}.controls{gap:7px}.status{padding:8px 12px}.action button{min-height:47px}}
 
@@ -67,7 +67,12 @@
 .breakWarning span{font-variant-numeric:tabular-nums;white-space:nowrap;color:#fff6a1;}
 @keyframes lineDangerPulse{from{box-shadow:0 0 2px #f34242aa,0 4px 18px #0008}to{box-shadow:0 0 17px #ff3838d9,0 4px 18px #0008}}
 @media(prefers-reduced-motion:reduce){.fightHud.lineDanger{animation:none}}
-</style><body><main class="app" id="app"><canvas id="scene" aria-label="Animowana scena 3D — jezioro, wędka, kołowrotek i spławik"></canvas><div class="tint"></div><div class="top"><div><div class="brand">CarpRide<span>Club</span></div><div class="subtitle">FISHING 3D • V2.7.6</div></div><div class="chip">HOL 3D · TEST</div></div><div class="hero"><strong id="headline">Gotowy do zarzucenia</strong><small id="detail">Zarzuć zestaw i poczekaj na branie</small></div><div class="castProgress" id="progress"><div id="progressInner"></div></div><div class="credit">WĘDKA + KOŁOWROTEK 3D · BEZ RĄK</div><div class="controls">
+/* v2.8.1 audio control: quiet, accessible, above the lake viewport */
+.soundTools{display:flex;flex-direction:column;align-items:flex-end;gap:5px;pointer-events:auto}
+.soundToggle{cursor:pointer;touch-action:manipulation;background:#0d1c27e8;color:#f9e5bd;border:1px solid #ceac79a0;border-radius:10px;font-size:10px;font-weight:850;letter-spacing:.15px;padding:7px 10px;box-shadow:0 3px 10px #0006}
+.soundToggle:focus-visible{outline:2px solid #fbc67c;outline-offset:3px}
+@media(max-width:420px){.soundTools .chip{font-size:9px;padding:6px 9px}.soundToggle{font-size:9px;padding:6px 8px}.top{gap:6px}}
+</style><body><main class="app" id="app"><canvas id="scene" aria-label="Animowana scena 3D — jezioro, wędka, kołowrotek i spławik"></canvas><div class="tint"></div><div class="top"><div><div class="brand">CarpRide<span>Club</span></div><div class="subtitle">FISHING 3D • V2.8.1</div></div><div class="soundTools"><div class="chip">HOL 3D · TEST</div><button type="button" class="soundToggle" id="soundToggle" aria-label="Włącz lub wyłącz dźwięki gry" aria-pressed="true">🔊 DŹWIĘK</button></div></div><div class="hero"><strong id="headline">Gotowy do zarzucenia</strong><small id="detail">Zarzuć zestaw i poczekaj na branie</small></div><div class="castProgress" id="progress"><div id="progressInner"></div></div><div class="credit">WĘDKA + KOŁOWROTEK 3D · BEZ RĄK</div><div class="controls">
 <div class="biteHud" id="biteHud" hidden><strong>BRANIE! ZACINAJ!</strong><div class="countdown"><span id="biteFill"></span></div><small>Masz 1 sekundę na reakcję</small></div>
 <div class="fightHud" id="fightHud" hidden>
  <div class="hudTitles"><b>NAPIĘCIE ŻYŁKI</b><span id="tensionVal">38%</span></div>
@@ -593,31 +598,187 @@ carpPreviewBtn.addEventListener('click',()=>{
 function buttonState(label,disabled=false,css=''){actionBtn.textContent=label;actionBtn.disabled=disabled;actionBtn.classList.toggle('reeling',css==='reeling');actionBtn.classList.toggle('hook',css==='hook');}
 const tensionTrack=document.querySelector('.tensionTrack');
 const breakWarning=document.getElementById('breakWarning'),breakTime=document.getElementById('breakTime');
-// Tiny generated chime, not an external sound file. Browsers unlock it only after a press.
-let warningAudio=null,warningSoundEnabled=false;
-function unlockWarningSound(){
- try{
-  const AudioContextCtor=window.AudioContext||window.webkitAudioContext;
-  if(!AudioContextCtor)return;
-  if(!warningAudio)warningAudio=new AudioContextCtor();
-  if(warningAudio.state==='suspended')warningAudio.resume().catch(()=>{});
-  warningSoundEnabled=true;
- }catch(_){warningSoundEnabled=false;}
+// CarpRide Fishing 3D v2.8.1 - compact offline-friendly Web Audio prototype.
+// Every sound is generated locally; no network requests and no copyrighted samples.
+function createFishingAudio(){
+ const button=document.getElementById('soundToggle');
+ const AudioCtor=window.AudioContext||window.webkitAudioContext;
+ let ctx=null,master=null,reelLoop=null,dragLoop=null;
+ let enabled=true,active=false,priorSplash=-Infinity,lastCreak=-99;
+ let lastBeep=-99,lastCastSplash=-99,lastBreak=-99;
+ let waterSamples=[],snapSample=null,creakSample=null;
+ let dragLevel=0,reelLevel=0,playCounts={splash:0,drag:0,reel:0,creak:0,snap:0,warning:0};
+ // Deterministic foley textures: percussive ratchet teeth, gear friction, water and carbon/line creaks.
+ function prng(seed){let state=seed>>>0;return ()=>{state=(1664525*state+1013904223)>>>0;return state/4294967296;};}
+ function asBuffer(data){const b=ctx.createBuffer(1,data.length,ctx.sampleRate);b.copyToChannel(data,0);return b;}
+ function ratchetBuffer(kind){
+  const rate=ctx.sampleRate,seconds=1,n=Math.round(rate*seconds),out=new Float32Array(n),rnd=prng(kind==='drag'?13787:8812);
+  const teeth=kind==='drag'?25:13;
+  // Separate resonances for the spool click and the quieter turning gears.
+  for(let k=0;k<teeth;k++){
+   const center=Math.floor(k*n/teeth),level=(.70+rnd()*.25),pitch=kind==='drag'?1650+rnd()*380:850+rnd()*300;
+   const duration=Math.floor(rate*(kind==='drag'?.022:.036));
+   for(let j=0;j<duration;j++){
+    const t=j/rate,decay=Math.exp(-t*(kind==='drag'?245:128)),idx=(center+j)%n;
+    const click=Math.sin(2*Math.PI*pitch*t)*.73+Math.sin(2*Math.PI*pitch*.57*t)*.25;
+    const grit=(rnd()*2-1)*(kind==='drag'?.40:.18);
+    out[idx]+=level*decay*(click+grit)*(kind==='drag'?.37:.23);
+   }
+  }
+  let smooth=0;
+  for(let i=0;i<n;i++){
+   smooth=.89*smooth+.11*(rnd()*2-1);
+   out[i]+=(rnd()*2-1)*.016+smooth*(kind==='drag'?.035:.023);
+   out[i]=Math.max(-.88,Math.min(.88,out[i]));
+  }
+  return asBuffer(out);
+ }
+ function waterBuffer(seed){
+  const rate=ctx.sampleRate,n=Math.floor(rate*1.12),out=new Float32Array(n),rnd=prng(seed);
+  let low=0,mid=0;
+  for(let i=0;i<n;i++){
+   const t=i/rate,white=rnd()*2-1;
+   low=low*.975+white*.025;
+   mid=mid*.72+white*.28;
+   // Real splashes combine a sharp slap, middle fizz and descending bubbly resonance.
+   const slap=Math.exp(-Math.pow((t-.025)/.020,2))*.45;
+   const wash=Math.exp(-Math.max(0,t-.045)*6.2)*Math.min(1,t*42)*.56;
+   const drips=(Math.exp(-Math.pow((t-.21)/.034,2))*.20+Math.exp(-Math.pow((t-.39)/.043,2))*.13);
+   const bubbles=Math.sin(2*Math.PI*(380*t-315*t*t))*.08*Math.exp(-t*5.3);
+   out[i]=Math.max(-.88,Math.min(.88,(white*.20+mid*.66+low*.82)*(slap+wash+drips)+bubbles));
+  }
+  return asBuffer(out);
+ }
+ function snapBuffer(){
+  const rate=ctx.sampleRate,n=Math.floor(rate*.47),out=new Float32Array(n),rnd=prng(4199);
+  let soft=0;
+  for(let i=0;i<n;i++){
+   const t=i/rate,w=rnd()*2-1;soft=.80*soft+.20*w;
+   const snap=Math.exp(-t*110)*(.72*w+.22*Math.sin(2*Math.PI*2650*t));
+   const retreat=.24*Math.sin(2*Math.PI*(790*t-260*t*t))*Math.exp(-t*23);
+   const slack=.08*soft*Math.exp(-t*9);
+   out[i]=Math.max(-.93,Math.min(.93,snap+retreat+slack));
+  }
+  return asBuffer(out);
+ }
+ function creakBuffer(){
+  const rate=ctx.sampleRate,n=Math.floor(rate*.33),out=new Float32Array(n),rnd=prng(618);
+  let s=0;
+  for(let i=0;i<n;i++){
+   const t=i/rate,x=rnd()*2-1;s=.92*s+.08*x;
+   const e=Math.sin(Math.PI*Math.min(1,t/.33))**1.3;
+   const reson=Math.sin(2*Math.PI*(250*t+145*t*t))*.16;
+   const friction=(s*.56+x*.12);
+   out[i]=(reson+friction)*e*.40;
+  }
+  return asBuffer(out);
+ }
+ function createLoop(buffer){
+  const source=ctx.createBufferSource(),gain=ctx.createGain(),filter=ctx.createBiquadFilter();
+  source.buffer=buffer;source.loop=true;gain.gain.value=0;
+  filter.type='lowpass';filter.frequency.value=3900;
+  source.connect(filter);filter.connect(gain);gain.connect(master);source.start();
+  return {source,gain,filter};
+ }
+ function init(){
+  if(!AudioCtor||ctx)return !!ctx;
+  try{
+   ctx=new AudioCtor();master=ctx.createGain();master.gain.value=enabled?.77:0;master.connect(ctx.destination);
+   dragLoop=createLoop(ratchetBuffer('drag'));reelLoop=createLoop(ratchetBuffer('reel'));
+   dragLoop.filter.frequency.value=3850;reelLoop.filter.frequency.value=2600;
+   waterSamples=[waterBuffer(1124),waterBuffer(894),waterBuffer(2775)];
+   snapSample=snapBuffer();creakSample=creakBuffer();
+   return true;
+  }catch(e){console.warn('CarpRide audio unavailable',e);ctx=null;return false;}
+ }
+ function unlock(){
+  if(!enabled||!init())return;
+  if(ctx.state==='suspended')ctx.resume().catch(()=>{});
+ }
+ function play(buffer,gain,rate=1,pan=0){
+  if(!ctx||!enabled||ctx.state!=='running')return;
+  try{
+   const source=ctx.createBufferSource(),volume=ctx.createGain();
+   source.buffer=buffer;source.playbackRate.value=rate;
+   volume.gain.value=Math.max(0,Math.min(.9,gain));
+   source.connect(volume);
+   if(ctx.createStereoPanner){const panner=ctx.createStereoPanner();panner.pan.value=Math.max(-.7,Math.min(.7,pan));volume.connect(panner);panner.connect(master);source.onended=()=>{source.disconnect();volume.disconnect();panner.disconnect();};}
+   else {volume.connect(master);source.onended=()=>{source.disconnect();volume.disconnect();};}
+   source.start();
+  }catch(e){console.warn('CarpRide sound skipped',e);}
+ }
+ function splash(intensity=.5,pan=0){
+  if(!ctx||!enabled||ctx.state!=='running')return;
+  const index=(playCounts.splash++)%waterSamples.length;
+  play(waterSamples[index],.16+.29*Math.max(0,Math.min(1,intensity)),.87+((index%3)*.11),pan);
+ }
+ function warning(){
+  if(!ctx||!enabled||ctx.state!=='running'||clock-lastBeep<.7)return;
+  lastBeep=clock;playCounts.warning++;
+  const start=ctx.currentTime,osc=ctx.createOscillator(),vol=ctx.createGain();
+  osc.type='sine';osc.frequency.setValueAtTime(520,start);osc.frequency.exponentialRampToValueAtTime(690,start+.12);
+  vol.gain.setValueAtTime(.0001,start);vol.gain.exponentialRampToValueAtTime(.024,start+.018);vol.gain.exponentialRampToValueAtTime(.0001,start+.16);
+  osc.connect(vol);vol.connect(master);osc.start(start);osc.stop(start+.17);
+  osc.onended=()=>{osc.disconnect();vol.disconnect();};
+ }
+ function lineBreak(){
+  if(clock-lastBreak<.4)return;
+  lastBreak=clock;playCounts.snap++;play(snapSample,.60,1,0);
+  if(ctx&&dragLoop&&reelLoop){dragLoop.gain.gain.setTargetAtTime(0,ctx.currentTime,.012);reelLoop.gain.gain.setTargetAtTime(0,ctx.currentTime,.012);}
+ }
+ function castSplash(){if(clock-lastCastSplash>.5){lastCastSplash=clock;splash(.20,-.22);}}
+ function update(data){
+  // Keep event tracking in sync even when sound is disabled, to avoid belated splashes.
+  const soundNewSplash=Number.isFinite(data.splashBurst)&&data.splashBurst!==priorSplash;
+  priorSplash=data.splashBurst;
+  if(!ctx||ctx.state!=='running')return;
+  const fighting=data.phase==='fight';
+  const heavy=Math.min(1,Math.max(0,((data.weight||1000)/1000-1)/23));
+  const run=Math.min(1,Math.max(0,data.run||0));
+  const crank=fighting&&data.reeling;
+  const drag=fighting&&run>.08;
+  // Low load when a small fish is hooked; aggressive but believable ratchet on a 20+ kg carp.
+  const dg=enabled&&drag?(.025+.13*run*(.55+.45*heavy)):0;
+  const rg=enabled&&crank?(.045+.047*heavy):0;
+  const now=ctx.currentTime;
+  dragLoop.gain.gain.setTargetAtTime(dg,now,.085);
+  reelLoop.gain.gain.setTargetAtTime(rg,now,.045);
+  dragLoop.source.playbackRate.setTargetAtTime(.6+run*1.25+heavy*.22,now,.085);
+  reelLoop.source.playbackRate.setTargetAtTime(.78+heavy*.30,now,.09);
+  if(drag&&!active)playCounts.drag++;
+  if(crank&&!reelLevel)playCounts.reel++;
+  active=drag;reelLevel=crank?1:0;dragLevel=dg;
+  if(fighting&&soundNewSplash&&data.now-data.splashBurst<.20){
+   const pan=Math.max(-.6,Math.min(.6,data.fishPan||0));
+   splash(.32+.48*heavy,pan);
+  }
+  const stress=fighting&&data.overload>0.45&&data.bend>.70;
+  if(stress&&data.now-lastCreak>(1.18+(.7-heavy*.2))){
+   lastCreak=data.now;playCounts.creak++;
+   play(creakSample,.095+.07*heavy,1.02+Math.random()*.13,Math.max(-.4,Math.min(.4,data.fishPan||0)));
+  }
+ }
+ function syncButton(){
+  if(!button)return;
+  button.textContent=enabled?'🔊 DŹWIĘK':'🔇 WYCISZONE';
+  button.setAttribute('aria-pressed',enabled?'true':'false');
+  button.title=enabled?'Wycisz efekty gry':'Włącz efekty gry';
+ }
+ function setEnabled(v){
+  enabled=!!v;syncButton();
+  try{localStorage.setItem('carprideSoundEnabled',enabled?'1':'0');}catch(_){}
+  if(ctx&&master){master.gain.setTargetAtTime(enabled?.77:0,ctx.currentTime,.025);}
+  if(enabled)unlock();
+ }
+ try{enabled=localStorage.getItem('carprideSoundEnabled')!=='0';}catch(_){}
+ syncButton();
+ if(button)button.addEventListener('click',()=>setEnabled(!enabled));
+ return {unlock,update,warning,lineBreak,castSplash,setEnabled,getState:()=>({supported:!!AudioCtor,created:!!ctx,state:ctx?ctx.state:'not-started',enabled,dragLevel,reelingActive:!!reelLevel,events:{...playCounts}})};
 }
-function playLineWarning(){
- if(!warningAudio||!warningSoundEnabled||warningAudio.state!=='running'||clock-lastWarningSound<.68)return;
- lastWarningSound=clock;
- try{
-  const start=warningAudio.currentTime,osc=warningAudio.createOscillator(),vol=warningAudio.createGain();
-  osc.type='sine';osc.frequency.setValueAtTime(640,start);
-  osc.frequency.exponentialRampToValueAtTime(860,start+.13);
-  vol.gain.setValueAtTime(.0001,start);
-  vol.gain.exponentialRampToValueAtTime(.035,start+.018);
-  vol.gain.exponentialRampToValueAtTime(.0001,start+.16);
-  osc.connect(vol);vol.connect(warningAudio.destination);
-  osc.start(start);osc.stop(start+.17);osc.onended=()=>{osc.disconnect();vol.disconnect()};
- }catch(_){/* No sound when AudioContext cannot run: warnings stay visual. */}
-}
+const fishingAudio=createFishingAudio();
+// The existing overload warning now shares the single audio engine and mute setting.
+function unlockWarningSound(){fishingAudio.unlock();}
+function playLineWarning(){if(clock-lastWarningSound<.68)return;lastWarningSound=clock;fishingAudio.warning();}
 function hudUpdate(){
  fightHud.hidden=phase!=='fight';biteHud.hidden=phase!=='bite';
  const band=tensionWindow(),key=band.lo.toFixed(2)+'-'+band.hi.toFixed(2);
@@ -642,7 +803,7 @@ function hudUpdate(){
   green&&reeling?'Dobrze! Utrzymuj zielone pole.':'Zielone pole — przytrzymaj „ZWIJAJ”.';
  if(phase==='bite')biteFill.style.width=100*clamp01(1-(clock-biteStart)/1)+'%';
 }
-function setPhase(next){phase=next;document.getElementById('app').classList.toggle('is-fighting',next==='fight');fishSelect.disabled=['cast','waiting','bite','fight'].includes(next);if(next==='idle'){buttonState('🎣 ZARZUĆ ZESTAW');setLabel('Gotowy do zarzucenia','Zarzuć wędkę, poczekaj na branie i zacinaj!','Zestaw gotowy');}
+function setPhase(next){if(next==='lost'&&phase==='fight')fishingAudio.lineBreak();phase=next;document.getElementById('app').classList.toggle('is-fighting',next==='fight');fishSelect.disabled=['cast','waiting','bite','fight'].includes(next);if(next==='idle'){buttonState('🎣 ZARZUĆ ZESTAW');setLabel('Gotowy do zarzucenia','Zarzuć wędkę, poczekaj na branie i zacinaj!','Zestaw gotowy');}
 else if(next==='cast'){buttonState('ZARZUCANIE…',true);setLabel('Zarzucanie zestawu…','Spławik leci po łuku','Zamach i zarzut');}
 else if(next==='waiting'){buttonState('OCZEKIWANIE NA BRANIE…',true);setLabel('Czekaj na branie…','Obserwuj spławik — za chwilę zanurzy się pod wodę','Spławik na wodzie');}
 else if(next==='bite'){buttonState('⚡ ZACINAJ!',false,'hook');setLabel('BRANIE!','Masz 1 sekundę na zacięcie!','Ryba bierze!');}
@@ -901,7 +1062,7 @@ if(phase==='cast'){
 let t=clamp((elapsed-.50)/1.6,0,1);const tip=dPoint([0,9.185,.128],r,b),start=[tip[0]-.12,tip[1]-.25,tip[2]-.14];
 if(t<.01)floatPos=start;
 else{let u=t*t*(3-2*t);floatPos=[lerp(start[0],fpTarget[0],u),lerp(start[1],fpTarget[1],u)+3.9*Math.sin(u*Math.PI),lerp(start[2],fpTarget[2],u)];}
-if(elapsed>=2.1 && elapsed-dt<2.1)rippleStart=performance.now();
+if(elapsed>=2.1 && elapsed-dt<2.1){rippleStart=performance.now();fishingAudio.castSplash();}
 document.getElementById('progressInner').style.width=Math.min(100,elapsed/2.15*100)+'%';
 }else floatPos=[...fpTarget];
 if(phase==='waiting'&&clock-waitingStart>2.3){biteStart=clock;setPhase('bite');}
@@ -999,7 +1160,10 @@ if(phase==='fight'){
 if(phase==='win'||phase==='lost'){r=.26+.018*Math.sin(clock*1.3);b=.09+Math.max(0,.19-(clock-finishAt)*.3);}
  if(phase!=='fight')updateRodPullDirection(dt,vp);
  rodTargetBend=b;stepRodDynamics(r,b,sideTarget,dt);
- if(phase==='cast')rotor-=dt*.9;
+  fishingAudio.update({phase,reeling,run:phase==='fight'?(fishEvent==='run'?carpRunIntensity||eventPower(clock-fightStart):0):0,
+    weight:currentFishWeight,splashBurst,now:clock,overload:lineOverload,bend,
+    fishPan:clamp((fishPos[0]+2)/16,-.65,.65)});
+  if(phase==='cast')rotor-=dt*.9;
  hudUpdate();
  guardRodTip(vp);
  if(phase==='fight'){
@@ -1067,6 +1231,6 @@ window.__carprideScene={cast,hook,previewCarp:()=>{fishSelect.value='carp';carpP
  eventNext=eventEnds+5;
  if(name==='carpStrike'){bendVel+=1.9;rootVel+=.28;}
  return true;
-},debugWeight:(g)=>{currentFishWeight=Math.round(g)},getRoster:()=>FISH};setPhase('idle');requestAnimationFrame(render);
+},debugWeight:(g)=>{currentFishWeight=Math.round(g)},getRoster:()=>FISH,audioState:()=>fishingAudio.getState(),debugAudio:(name)=>{fishingAudio.unlock();if(name==='splash')fishingAudio.castSplash();if(name==='break')fishingAudio.lineBreak();if(name==='warning')fishingAudio.warning();return fishingAudio.getState();}};setPhase('idle');requestAnimationFrame(render);
 })()
 </script></body></html>

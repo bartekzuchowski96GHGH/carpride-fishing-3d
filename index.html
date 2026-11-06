@@ -111,7 +111,7 @@
 @media(prefers-reduced-motion:no-preference){.app.is-catch .catchReveal{animation:catchRevealEnter .35s cubic-bezier(.2,.8,.25,1) both}}
 @keyframes catchRevealEnter{from{opacity:0;transform:translateY(calc(-50% + 12px)) scale(.97)}to{opacity:1;transform:translateY(-50%) scale(1)}}
 </style><style>
-/* v2.9.17 · continuous stylized fish silhouettes (no detached tail).
+/* v2.9.18 · continuous stylized fish silhouettes (no detached tail).
    Separate 2.5D game-style assets used only during jump events; catch result artwork stays unchanged. */
 .jump-fish-actor{position:absolute;z-index:2;left:0;top:0;width:110px;max-width:none;
  aspect-ratio:1100/678;pointer-events:none;user-select:none;-webkit-user-select:none;
@@ -155,7 +155,7 @@
   },16000);
 })();
 </script>
-<main class="app" id="app"><canvas id="scene" aria-label="Animowana scena 3D — jezioro, wędka, kołowrotek i spławik"></canvas><div class="tint"></div><div class="jump-fish-splash" id="jumpFishSplash" hidden aria-hidden="true"></div><div class="jump-fish-actor" id="jumpFishActor" hidden aria-hidden="true"><canvas id="jumpFishCanvas" class="jump-fish-canvas" width="800" height="589" aria-hidden="true"></canvas></div><div class="top"><div><div class="brand">CarpRide<span>Club</span></div><div class="subtitle">FISHING 3D • V2.9.17</div></div><div class="soundTools"><div class="chip">HOL 3D · TEST</div><button type="button" class="soundToggle" id="soundToggle" aria-label="Włącz lub wyłącz dźwięki gry" aria-pressed="true">🔊 DŹWIĘK</button></div></div><div class="hero"><strong id="headline">Gotowy do zarzucenia</strong><small id="detail">Zarzuć zestaw i poczekaj na branie</small></div><div class="castProgress" id="progress"><div id="progressInner"></div></div><div class="credit">WĘDKA + KOŁOWROTEK 3D · BEZ RĄK</div><div class="controls">
+<main class="app" id="app"><canvas id="scene" aria-label="Animowana scena 3D — jezioro, wędka, kołowrotek i spławik"></canvas><div class="tint"></div><div class="jump-fish-splash" id="jumpFishSplash" hidden aria-hidden="true"></div><div class="jump-fish-actor" id="jumpFishActor" hidden aria-hidden="true"><canvas id="jumpFishCanvas" class="jump-fish-canvas" width="800" height="589" aria-hidden="true"></canvas></div><div class="top"><div><div class="brand">CarpRide<span>Club</span></div><div class="subtitle">FISHING 3D • V2.9.18</div></div><div class="soundTools"><div class="chip">HOL 3D · TEST</div><button type="button" class="soundToggle" id="soundToggle" aria-label="Włącz lub wyłącz dźwięki gry" aria-pressed="true">🔊 DŹWIĘK</button></div></div><div class="hero"><strong id="headline">Gotowy do zarzucenia</strong><small id="detail">Zarzuć zestaw i poczekaj na branie</small></div><div class="castProgress" id="progress"><div id="progressInner"></div></div><div class="credit">WĘDKA + KOŁOWROTEK 3D · BEZ RĄK</div><div class="controls">
 <div class="biteHud" id="biteHud" hidden><strong>BRANIE! ZACINAJ!</strong><div class="countdown"><span id="biteFill"></span></div><small>Masz 1 sekundę na reakcję</small></div>
 <div class="fightHud" id="fightHud" hidden>
  <div class="hudTitles"><b>NAPIĘCIE ŻYŁKI</b><span id="tensionVal">38%</span></div>
@@ -662,6 +662,8 @@ let lineLostReason='overload';
 let currentFishId='perch',currentFishWeight=750,fishEvent='none',carpPreview=false,carpInspectAngle=0,eventStart=0,eventEnds=0,eventNext=0,eventTensionBurst=0,fishJump=0,fishTurning=0;
 // Independent jump actor. It uses the approved art while existing WebGL water and rod keep rendering.
 let jumpStartedAt=-100,jumpOrigin=[-13.2,-1.07,-19.5],jumpDirection=1,jumpSequence=0;
+// Once per fight: a pike/grass carp jump is tied to progress, never picked at random.
+let jumpProgressThreshold=17.5,jumpUsed=false,jumpCount=0;
 // Independent, irregular carp-only surface gestures; full body stays submerged.
 let carpTailStart=-100,carpTailEnd=-100,carpTailNext=1e9,carpTailBeats=1,carpTailLift=0,carpTailSwing=0,carpTailPosition=[0,-1.02,0],carpTailCount=0;
 // Catfish now uses a dedicated tail-only breach during the fight. We only need the
@@ -776,7 +778,7 @@ function advanceFightMechanics(dt,force,run,small){
 }
 
 function fishRenderScale(){const base={roach:.40,perch:.62,rudd:.50,crucian:.58,tench:.62,pike:1.04,zander:.96,carp:1.23,grass:1.26,catfish:1.66};const f=FISH[currentFishId],portion=clamp((currentFishWeight-f.weightLo)/Math.max(1,f.weightHi-f.weightLo),0,1);return base[currentFishId]*(.83+portion*.25);}
-function pickEvent(style){const choices={flutter:['dart'],dart:['dart','dart'],tench:['jerk','jerk','dart'],pike:['run','jump','run'],grass:['run','jump','run'],run:['run','run','dart'],catfish:['run','slam','slam','run']};const opts=choices[style]||['dart'];return opts[Math.floor(Math.random()*opts.length)];}
+function pickEvent(style){const choices={flutter:['dart'],dart:['dart','dart'],tench:['jerk','jerk','dart'],pike:['run','run','dart'],grass:['run','run','dart'],run:['run','run','dart'],catfish:['run','slam','slam','run']};const opts=choices[style]||['dart'];return opts[Math.floor(Math.random()*opts.length)];}
 function startCarpTail(){
  carpTailStart=clock;const duration=1.1+Math.random()*.55;
  carpTailEnd=clock+duration;carpTailNext=carpTailEnd+5.6+Math.random()*7.1;
@@ -835,7 +837,7 @@ function drawCarpSurface(){
 function startFishEvent(age){
  if(isSmallCatch())return;
  const f=FISH[currentFishId];fishEvent=pickEvent(f.style);eventStart=age;runLostThisEvent=0;
- const length={dart:.42,jerk:.60,carpStrike:.62+Math.random()*.25,run:currentFishId==='carp'?3.1+Math.random()*1.8:2.8+Math.random()*1.1,jump:1.55,slam:.65};
+ const length={dart:.42,jerk:.60,carpStrike:.62+Math.random()*.25,run:currentFishId==='carp'?3.1+Math.random()*1.8:2.8+Math.random()*1.1,slam:.65};
  eventEnds=age+length[fishEvent];eventNext=eventEnds+(currentFishId==='carp'?2.5+Math.random()*3.2:.65+Math.random()*1.35);
  if(currentFishId==='carp'){if(fishEvent==='run')carpRunCount++;if(fishEvent==='carpStrike')carpJerkCount++;}
  // A sudden physical impulse from a big catfish; the rest builds gradually.
@@ -852,12 +854,17 @@ function startFishEvent(age){
  }else if(fishEvent==='dart'){
   bendVel+=.34;
  }
- if(fishEvent==='jump'){
-  splashBurst=clock;rippleStart=performance.now();
-  if(currentFishId==='pike'||currentFishId==='grass'){
-   jumpStartedAt=clock;jumpOrigin=[...fishPos];jumpDirection=Math.random()<.5?-1:1;jumpSequence++;
-  }
- }
+}
+// Scheduled breach is highest priority whenever an existing run/jerk finishes.
+// Mark it as used immediately so the fish cannot jump twice in the same fight.
+function startScheduledJump(age){
+ if(jumpUsed||phase!=='fight'||(currentFishId!=='pike'&&currentFishId!=='grass'))return false;
+ jumpUsed=true;jumpCount++;
+ fishEvent='jump';eventStart=age;eventEnds=age+1.55;
+ eventNext=eventEnds+.8+Math.random()*.8;runLostThisEvent=0;
+ jumpStartedAt=clock;jumpOrigin=[...fishPos];jumpDirection=Math.random()<.5?-1:1;jumpSequence++;
+ splashBurst=clock;rippleStart=performance.now();
+ return true;
 }
 function eventPower(age){if(fishEvent==='none')return 0;const u=clamp((age-eventStart)/(eventEnds-eventStart),0,1);return Math.sin(Math.PI*u)**.8;}
 
@@ -1241,6 +1248,7 @@ else if(next==='miss'){buttonState('↻ SPRÓBUJ PONOWNIE');setLabel('NIE UDAŁO
 hudUpdate();updateCatchReveal();updateCarpPreviewUI();}
 function hook(){if(phase!=='bite')return;if(clock-biteStart>1){setPhase('miss');return;}fightStart=clock;tension=50;lineLostReason='overload';catchProgress=0;runLostThisEvent=0;finalRunTriggered=false;carpRunMarkers=makeCarpRunMarkers();
 fishEvent='none';eventStart=0;eventEnds=0;eventNext=isSmallCatch()?1e9:currentFishId==='carp'?1.8+Math.random()*1.6:2.0;eventTensionBurst=0;fishJump=0;fishTurning=0;jumpStartedAt=-100;
+ jumpProgressThreshold=15+Math.random()*5;jumpUsed=false;jumpCount=0;
  carpTailStart=-100;carpTailEnd=-100;carpTailLift=0;carpTailSwing=0;carpTailCount=0;
  catfishTailStart=-100;catfishTailEnd=-100;catfishTailLift=0;catfishTailSwing=0;catfishTailCount=0;
  carpTailNext=currentFishId==='carp'?clock+2.6+Math.random()*3.3:1e9;
@@ -1272,7 +1280,7 @@ function aimRigPoint(v){
 // Identical centerline and cross-section rotation to the GLSL blank shader:
 // the reel line still passes through each guide's exact center after flexing.
 function rodFlexPoint(p,bend){
- const t=clamp((p[1]-.5)/8.7,0,1),power=Math.max(0,bend-.52)*(phase==='fight'&&currentFishId==='carp'?1:0);
+ const t=clamp((p[1]-.5)/8.7,0,1),power=Math.max(0,bend-.52)*(phase==='fight'&&(currentFishId==='carp'||currentFishId==='catfish')?1:0);
  const amp=1.85*bend+.24*power,shape=.14*t**3+.86*t**5.3;
  const shapeD=(.42*t**2+4.558*t**4.3)/8.7,lateralShape=t**4.5,lateralD=4.5*t**3.5/8.7;
  const dir=rodPullDir;
@@ -1395,7 +1403,7 @@ function guardRodTip(vp){
 function stepRodDynamics(targetRoot,targetBend,targetSide,dt){
  const fish=FISH[currentFishId],style=fish.style,small=isSmallCatch();
  // Long runs flex and recover slowly; catfish/tench strikes are quick and elastic.
- const hz=phase!=='fight'?8:small?7:currentFishId==='carp'?9.3:style==='catfish'?17:style==='tench'?14:style==='run'||style==='grass'?8:10;
+ const hz=phase!=='fight'?8:small?7:currentFishId==='carp'?9.3:style==='catfish'?13:style==='tench'?14:style==='run'||style==='grass'?8:10;
  const damp=phase!=='fight'?1.0:small?1.0:currentFishId==='carp'?.73:style==='catfish'?.74:style==='tench'?.77:.88;
  const n=Math.max(1,Math.ceil(dt/.012)),h=dt/n;
  for(let i=0;i<n;i++){
@@ -1647,7 +1655,11 @@ if(phase==='fight'){
   // plus the one dramatic but balanced final run around 88%.
   const dueCarpRun=!small&&currentFishId==='carp'&&fishEvent==='none'
      ?carpRunMarkers.find(m=>!m.done&&catchProgress>=m.threshold):null;
-  if(dueCarpRun){
+  if(!small&&(currentFishId==='pike'||currentFishId==='grass')&&!jumpUsed&&
+     catchProgress>=jumpProgressThreshold&&fishEvent==='none'){
+   // Approximately 15–20% progress; once per hooked fish, after any ongoing run.
+   startScheduledJump(age);
+  }else if(dueCarpRun){
    dueCarpRun.done=true;
    startCarpRun(age);
   }else if(!small&&currentFishId==='carp'&&!finalRunTriggered&&catchProgress>=88&&fishEvent==='none'){
@@ -1724,6 +1736,15 @@ if(phase==='fight'){
    b=clamp(.68+.12*load+.028*mass+breathing+.035*kick+run*(.29+.045*mass)
       +carpStrike*.11+carpTailLift*.036,.64,1.175);
    r+=.032*run+.017*carpStrike;
+  }else if(currentFishId==='catfish'&&!small){
+   // Heavy catfish stays loaded throughout the fight: pronounced upper-blank flex,
+   // slower breathing under the fish's weight and stronger slam/recovery pulses.
+   // The GPU blank and the CPU guide/line geometry share the same deformation.
+   const mass=clamp01((currentFishWeight-60000)/30000);
+   const breathing=.021*Math.sin(age*1.38)+.013*Math.sin(age*2.65+.4);
+   b=clamp(.79+.12*load+.038*mass+breathing+.065*kick+run*.19+
+     slam*.18+catfishTailLift*.055,.74,1.175);
+   r+=.031*run+.028*slam;
   }else{
    b=clamp(small?.155+.012*Math.sin(age*3):.22+load*(.23+weightDrive*.26)+kick*.07+longPull+strike+rodFlutter,.10,1.05);
   }
@@ -1765,7 +1786,7 @@ gl.uniform1f(wLoc.fishSize,fishSize);bindAttr(wLoc.p,waterBuff,3);gl.bindBuffer(
 gl.enable(gl.BLEND);gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);
 gl.drawElements(gl.TRIANGLES,waterInd.length,gl.UNSIGNED_SHORT,0);gl.disable(gl.BLEND);
 // 3. Landscape, rod and float are all spatial meshes with real depth.
-gl.useProgram(pModel);gl.uniformMatrix4fv(mLoc.vp,false,vp);gl.uniform3fv(mLoc.eye,new Float32Array(cam.eye));gl.uniform1f(mLoc.time,clock);gl.uniform1f(mLoc.root,root);gl.uniform1f(mLoc.bend,bend);gl.uniform1f(mLoc.side,rodSide);gl.uniform1f(mLoc.rigRoll,RIG_ROLL);gl.uniform1f(mLoc.rigTilt,RIG_TILT);gl.uniform1f(mLoc.rigAzimuth,RIG_AXIS_YAW);gl.uniform1f(mLoc.carpRodMode,phase==='fight'&&currentFishId==='carp'?1:0);gl.uniform2fv(mLoc.pullDir,new Float32Array(rodPullDir));gl.uniform1f(mLoc.crank,crank);gl.uniform1f(mLoc.rotor,rotor);gl.uniform3fv(mLoc.float,new Float32Array(floatPos));
+gl.useProgram(pModel);gl.uniformMatrix4fv(mLoc.vp,false,vp);gl.uniform3fv(mLoc.eye,new Float32Array(cam.eye));gl.uniform1f(mLoc.time,clock);gl.uniform1f(mLoc.root,root);gl.uniform1f(mLoc.bend,bend);gl.uniform1f(mLoc.side,rodSide);gl.uniform1f(mLoc.rigRoll,RIG_ROLL);gl.uniform1f(mLoc.rigTilt,RIG_TILT);gl.uniform1f(mLoc.rigAzimuth,RIG_AXIS_YAW);gl.uniform1f(mLoc.carpRodMode,phase==='fight'&&(currentFishId==='carp'||currentFishId==='catfish')?1:0);gl.uniform2fv(mLoc.pullDir,new Float32Array(rodPullDir));gl.uniform1f(mLoc.crank,crank);gl.uniform1f(mLoc.rotor,rotor);gl.uniform3fv(mLoc.float,new Float32Array(floatPos));
 const previewFish=null; // Carp/grass 3D previews removed from the game.
 const winFish=null; // Catch screen uses the 10 original CarpRide Club WebP illustrations.
 const grassFightModel=false; // Grass carp 3D body removed. Its 2.5D leap remains.
@@ -1813,7 +1834,7 @@ if(phase!=='idle'&&(phase!=='cast'||elapsed>1.9)){
  }
 }
 updateJumpActor(vp);
-window.__carprideSceneState={loaded:true,scenery,approvedBackdropLoaded:!!skyReady,phase,waterAnimated:true,rod3d:true,fl3d:true,rigRoll:RIG_ROLL,visibleGuides:7,guideY:[...guideY],floatVisible:['cast','waiting','bite','miss'].includes(phase),rotor,crank,root,bend,rodSide,rootVelocity:rootVel,bendVelocity:bendVel,float:[...floatPos],tension,catchProgress,reeling,tensionWindow:tensionWindow(),runLostThisEvent,finalRunTriggered,carpRunMarkers:carpRunMarkers.map(m=>({...m})),castReleased,castFlight:phase==='cast'?clamp01((elapsed-CAST_RELEASE_AT)/(CAST_LAND_AT-CAST_RELEASE_AT)):0,lineOverload,tooLoose,breakLimit,slackThreshold:slackThreshold(tensionWindow()),slackDanger:tension<slackThreshold(tensionWindow()),overloadDanger:reeling&&tension>dangerThreshold(tensionWindow()),lineLostReason,selectedFish:currentFishId,fishWeightGrams:currentFishWeight,fishEvent,fishJump,jumpSpecies:(phase==='fight'&&fishEvent==='jump'?currentFishId:null),jumpAnimationActive:!jumpFishActor.hidden,jumpSpriteWidthPx:jumpFishActor.getBoundingClientRect().width,jumpScreenPosition:[parseFloat(jumpFishActor.style.left)||0,parseFloat(jumpFishActor.style.top)||0],jumpSequence,fishPosition:[...fishPos],fishDirection:[...fishDir],fishBreach,fishSurfaceChance,surfaceFish3d:currentFishId!=='pike',carp3d:true,carpPreview:previewFish||winFish?carpShow:false,carpTailAboveWater:carpTailBreach,carpTailCount,carpTailNext,carpTailLift,carpTailSwing,carpTailBeats,carpTailPosition:[...carpTailPosition],catfishTailAboveWater:catfishTailBreach,catfishTailCount,catfishTailNext,catfishTailLift,catfishTailSwing,catfishTailBeats,catfishTailPosition:[...catfishTailPosition],carpBoilActive:currentFishId==='carp'&&clock-carpBoilStart<1.65,carpRunCount,carpJerkCount,carpRunIntensity,rodTargetBend,rodPullDirection:[...rodPullDir],rodTipScreen:[...rodTipScreen],rodSafetyClamped,rodFishScreen:[...rodFishScreen],rodTargetSide,rodSideMatch,rodFlexProfile:'fish-position-screen-steer-v2.7.4',carpTriangles:(carpBody3D.count+carpTail3D.count)/3,grassTriangles:0,catfishTriangles:catfishTail3D.count/3,grassPhotoReady:false,grassPhotoError:'model 3D amura usunięty',grassDetailAtlasReady:false,carpAnimVersion:'v2.9.17-jump-continuous-slack',detailedFish3d:carpShow,detailedFishId,wake3d:phase==='fight',fps:Math.round(1/Math.max(dt,.001)),view:'pov',triangles:rod.count/3+waterInd.length/3};requestAnimationFrame(render);
+window.__carprideSceneState={loaded:true,scenery,approvedBackdropLoaded:!!skyReady,phase,waterAnimated:true,rod3d:true,fl3d:true,rigRoll:RIG_ROLL,visibleGuides:7,guideY:[...guideY],floatVisible:['cast','waiting','bite','miss'].includes(phase),rotor,crank,root,bend,rodSide,rootVelocity:rootVel,bendVelocity:bendVel,float:[...floatPos],tension,catchProgress,reeling,tensionWindow:tensionWindow(),runLostThisEvent,finalRunTriggered,carpRunMarkers:carpRunMarkers.map(m=>({...m})),castReleased,castFlight:phase==='cast'?clamp01((elapsed-CAST_RELEASE_AT)/(CAST_LAND_AT-CAST_RELEASE_AT)):0,lineOverload,tooLoose,breakLimit,slackThreshold:slackThreshold(tensionWindow()),slackDanger:tension<slackThreshold(tensionWindow()),overloadDanger:reeling&&tension>dangerThreshold(tensionWindow()),lineLostReason,selectedFish:currentFishId,fishWeightGrams:currentFishWeight,fishEvent,fishJump,jumpSpecies:(phase==='fight'&&fishEvent==='jump'?currentFishId:null),jumpAnimationActive:!jumpFishActor.hidden,jumpSpriteWidthPx:jumpFishActor.getBoundingClientRect().width,jumpScreenPosition:[parseFloat(jumpFishActor.style.left)||0,parseFloat(jumpFishActor.style.top)||0],jumpSequence,jumpProgressThreshold,jumpUsed,jumpCount,fishPosition:[...fishPos],fishDirection:[...fishDir],fishBreach,fishSurfaceChance,surfaceFish3d:currentFishId!=='pike',carp3d:true,carpPreview:previewFish||winFish?carpShow:false,carpTailAboveWater:carpTailBreach,carpTailCount,carpTailNext,carpTailLift,carpTailSwing,carpTailBeats,carpTailPosition:[...carpTailPosition],catfishTailAboveWater:catfishTailBreach,catfishTailCount,catfishTailNext,catfishTailLift,catfishTailSwing,catfishTailBeats,catfishTailPosition:[...catfishTailPosition],carpBoilActive:currentFishId==='carp'&&clock-carpBoilStart<1.65,carpRunCount,carpJerkCount,carpRunIntensity,rodTargetBend,rodPullDirection:[...rodPullDir],rodTipScreen:[...rodTipScreen],rodSafetyClamped,rodFishScreen:[...rodFishScreen],rodTargetSide,rodSideMatch,rodFlexProfile:'fish-position-screen-steer-v2.7.4',carpTriangles:(carpBody3D.count+carpTail3D.count)/3,grassTriangles:0,catfishTriangles:catfishTail3D.count/3,grassPhotoReady:false,grassPhotoError:'model 3D amura usunięty',grassDetailAtlasReady:false,carpAnimVersion:'v2.9.18-single-progress-jump-catfish-flex',detailedFish3d:carpShow,detailedFishId,wake3d:phase==='fight',fps:Math.round(1/Math.max(dt,.001)),view:'pov',triangles:rod.count/3+waterInd.length/3};requestAnimationFrame(render);
 }
 window.__carprideScene={cast,hook,debugCatch:(id,weight)=>{if(!FISH[id])return false;currentFishId=id;currentFishWeight=clamp(Math.round(weight??((FISH[id].weightLo+FISH[id].weightHi)/2)),FISH[id].weightLo,FISH[id].weightHi);stopReeling();setPhase('win');return true;},previewCarp:()=>false,previewGrass:()=>false,previewCatfish:()=>{fishSelect.value='catfish';carpPreview=false;updateCarpPreviewUI();return false;},getState:()=>window.__carprideSceneState,debugBite:()=>{biteStart=clock;setPhase('bite')},debugFight:()=>{biteStart=clock;setPhase('bite');hook()},debugSelectFish:(id,weight)=>{
  if(!FISH[id])return false;
@@ -1825,10 +1846,11 @@ window.__carprideScene={cast,hook,debugCatch:(id,weight)=>{if(!FISH[id])return f
  if(phase!=='fight')return false;
  if(name==='tail'&&currentFishId==='carp'){startCarpTail();return true;}
  if(!['jump','run','slam','jerk','dart','carpStrike'].includes(name))return false;
- const age=clock-fightStart;fishEvent=name;eventStart=age;runLostThisEvent=0;
+ const age=clock-fightStart;
+ if(name==='jump')return startScheduledJump(age);
+ fishEvent=name;eventStart=age;runLostThisEvent=0;
  eventEnds=age+({jump:1.55,run:3.6,slam:.65,jerk:.60,dart:.42,carpStrike:.72}[name]||1);
  eventNext=eventEnds+5;
- if(name==='jump'&&(currentFishId==='pike'||currentFishId==='grass')){jumpStartedAt=clock;jumpOrigin=[...fishPos];jumpDirection=Math.random()<.5?-1:1;jumpSequence++;splashBurst=clock;rippleStart=performance.now();}
  if(name==='carpStrike'){bendVel+=1.9;rootVel+=.28;}
   return true;
 },debugWeight:(g)=>{currentFishWeight=Math.round(g)},getRoster:()=>FISH,audioState:()=>fishingAudio.getState(),debugAudio:(name)=>{fishingAudio.unlock();if(name==='splash')fishingAudio.castSplash();if(name==='whistle')fishingAudio.castWhistle();if(name==='break')fishingAudio.lineBreak();if(name==='warning')fishingAudio.warning();return fishingAudio.getState();}};setPhase('idle');requestAnimationFrame(render);

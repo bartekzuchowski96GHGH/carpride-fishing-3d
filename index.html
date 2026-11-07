@@ -637,7 +637,7 @@ float height(vec2 x){return .075*sin(x.x*.80+uT*.95+sin(x.y*.28))+.045*cos(x.y*1
 void main(){vec3 p=aP;p.y+=height(p.xz);float dx=height(p.xz+vec2(.12,0.))-height(p.xz-vec2(.12,0.));float dz=height(p.xz+vec2(0.,.12))-height(p.xz-vec2(0.,.12));vNorm=normalize(vec3(-dx/.24,1.,-dz/.24));vWorld=p;vFoam=.5+.5*sin(p.z*3.+uT*.6)*sin(p.x*2.4-uT*.4);gl_Position=uVP*vec4(p,1.);}`;
 const waterFS=`precision highp float;varying vec3 vWorld,vNorm;varying float vFoam;uniform vec3 uEye;uniform float uT;uniform vec3 uFishPos;uniform vec2 uFishDir;uniform float uFishAction,uFishSize;
 void main(){vec3 view=normalize(uEye-vWorld);float fres=pow(1.-max(dot(normalize(vNorm),view),0.),2.3);vec3 base=mix(vec3(.055,.17,.23),vec3(.15,.28,.32),.5+.5*sin(vWorld.z*.06));float wave=.5+.5*sin(vWorld.x*1.25+vWorld.z*.69-uT*1.15);base+=vec3(.075,.13,.15)*wave*.32;float sunDir=pow(max(dot(reflect(normalize(vec3(.3,-.87,.15)),normalize(vNorm)),view),0.),35.);float ribbon=exp(-pow((vWorld.x+15.+.12*vWorld.z)/14.,2.));float flash=max(0.,sin(vWorld.z*1.65+sin(vWorld.x*.5)+uT*.35));float glint=ribbon*pow(flash,9.)*.32+sunDir*.25;vec3 copper=vec3(1.,.48,.19);base=mix(base,vec3(.25,.33,.40),fres*.38);base+=copper*glint*.52;float distanceCam=length(uEye.xz-vWorld.xz);float fog=smoothstep(38.,150.,distanceCam);base=mix(base,vec3(.28,.24,.27),fog*.65);
-// v2.9.37 · slightly irregular world-anchored dark patch above the deep shelf.
+// v2.9.38 · slightly irregular world-anchored dark patch above the deep shelf.
 float uneven=.075*sin(vWorld.x*.31+vWorld.z*.12)+.055*cos(vWorld.z*.46-vWorld.x*.18);
 float deepDist=length((vWorld.xz-vec2(-27.,-34.))/vec2(15.5,14.));
 float deepPocket=1.-smoothstep(.34,.99,deepDist+uneven);
@@ -739,7 +739,7 @@ function makeLilyPad(x,z,r,flower){
  env.cyl(fx,fz,fy-.04,fy+.075,.062,.052,[.97,.72,.18],9,8);
  scenery.waterLilies++;
 }
-// v2.9.37 · Five distinctly recognizable casting areas. All decorations are
+// v2.9.38 · Lake habitats visually separated across the water surface. All decorations are
 // actual world-space 3D meshes, never overlays on the fixed lake panorama.
 // Keep a clear landing pocket around every marker: 3D floats and hooked fish
 // must not appear to be physically inside the pads or tangled in the tree.
@@ -772,8 +772,9 @@ makeLilyCluster(-21.0,-14.7,4.7,3.9,94); // near point 2
 makeLilyCluster(-26.6,-21.1,3.3,4.5,45); // the vegetation / open water transition
 makeLilyCluster(-15.9,-11.1,2.4,2.3,24); // sparse shoreline leaves
 
-// Dense cattail reedbed on the left: many individual upright blades with
-// feathery seed heads, placed to the SIDE of the casting lane.
+// Dense cattail reedbed moved to the far right side of the lake: many
+// individual upright blades with feathery seed heads, clearly separated
+// from the lily field so the scenery reads as distinct habitats.
 function addReedBelt(cx,cz,rx,rz,count){
  for(let i=0;i<count;i++){
   const a=rnd()*6.283185,r=Math.sqrt(rnd()),x=cx+Math.cos(a)*r*rx,z=cz+Math.sin(a)*r*rz;
@@ -786,11 +787,12 @@ function addReedBelt(cx,cz,rx,rz,count){
   scenery.shorelineReeds++;
  }
 }
-addReedBelt(-14.5,-12.3,2.8,3.7,225); // recognizable left-side reeds
-addReedBelt(-12.8,-6.8,2.1,3.5,105);
+addReedBelt(15.6,-10.8,3.0,4.3,235); // far-right reed bed, visually separated from lilies
+addReedBelt(18.9,-5.8,2.4,4.0,120); // extra right-shore extension
 
 // Half-sunken deadwood: faceted, naturally tapered cylindrical trunk and
-// irregular bare branches. Geometry enters the water from the right side.
+// irregular bare branches. It now sits even farther right, behind the
+// reed bed, so the lake features are spread across the water surface.
 function addDriftwoodSegment(a,b,r0,r1,color,branches=false){
  const dir=unit(sub(b,a)),anchor=Math.abs(dir[1])<.85?[0,1,0]:[0,0,1];
  const right=unit(cross(dir,anchor)),up=unit(cross(dir,right)),segments=9;
@@ -807,15 +809,15 @@ function addDriftwoodSegment(a,b,r0,r1,color,branches=false){
  if(branches)scenery.logBranches++;else scenery.fallenLogs++;
 }
 const logBrown=[.29,.215,.14], branchBrown=[.245,.175,.112];
-addDriftwoodSegment([-6.3,-.70,-8.7],[-10.9,-1.06,-15.9],.34,.16,logBrown);
-addDriftwoodSegment([-10.9,-1.06,-15.9],[-12.8,-1.21,-18.2],.16,.055,logBrown);
-addDriftwoodSegment([-8.0,-.83,-11.0],[-10.4,-.24,-12.9],.17,.07,branchBrown,true);
-addDriftwoodSegment([-10.4,-.24,-12.9],[-11.65,.08,-13.6],.07,.02,branchBrown,true);
-addDriftwoodSegment([-9.1,-.92,-12.7],[-8.7,-.48,-15.0],.13,.04,branchBrown,true);
-addDriftwoodSegment([-10.1,-1.0,-14.6],[-11.4,-.71,-16.1],.11,.025,branchBrown,true);
-addDriftwoodSegment([-7.0,-.78,-9.8],[-7.2,-.32,-11.25],.13,.032,branchBrown,true);
+addDriftwoodSegment([24.6,-.66,-8.5],[19.8,-1.06,-16.2],.34,.16,logBrown);
+addDriftwoodSegment([19.8,-1.06,-16.2],[17.9,-1.20,-18.9],.16,.055,logBrown);
+addDriftwoodSegment([22.7,-.82,-11.0],[20.2,-.23,-12.9],.17,.07,branchBrown,true);
+addDriftwoodSegment([20.2,-.23,-12.9],[18.9,.08,-13.7],.07,.02,branchBrown,true);
+addDriftwoodSegment([21.5,-.92,-12.7],[21.9,-.47,-15.1],.13,.04,branchBrown,true);
+addDriftwoodSegment([20.5,-1.0,-14.7],[19.1,-.70,-16.2],.11,.025,branchBrown,true);
+addDriftwoodSegment([23.8,-.77,-9.9],[23.6,-.31,-11.3],.13,.032,branchBrown,true);
 // A few smaller surface sticks help distinguish this shelter from the lilies.
-addDriftwoodSegment([-6.7,-1.08,-10.1],[-8.9,-1.10,-12.45],.08,.02,branchBrown,true);
+addDriftwoodSegment([24.0,-1.08,-10.2],[21.7,-1.10,-12.55],.08,.02,branchBrown,true);
 
 const envMesh=env.build();
 // An actual 3D float mesh assembled in local coordinates, translated by the shader.

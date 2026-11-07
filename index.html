@@ -138,6 +138,27 @@
 .jump-fish-splash:before{left:18%;transform:rotate(-19deg)}
 .jump-fish-splash:after{right:21%;transform:rotate(19deg);height:36px}
 .app.is-catch .jump-fish-actor,.app.is-catch .jump-fish-splash{display:none!important}
+
+/* v2.9.25: five world-anchored cast targets. Only available before a cast. */
+.castSpotLayer{position:absolute;inset:0;z-index:3;pointer-events:none;overflow:hidden}
+.castSpotButton{position:absolute;display:grid;place-items:center;width:44px;height:44px;
+ transform:translate(-50%,-50%);border-radius:50%;border:2px solid rgba(252,224,163,.9);
+ background:rgba(9,38,46,.72);color:#fff4dd;font-size:14px;font-weight:900;
+ box-shadow:0 1px 0 rgba(255,255,255,.25) inset,0 2px 12px #08151ec4;
+ text-shadow:0 1px 2px #0a1b20;pointer-events:auto;touch-action:manipulation;cursor:pointer;
+ -webkit-tap-highlight-color:transparent;}
+.castSpotButton:before{content:'';position:absolute;inset:-6px;border:1px solid rgba(227,203,150,.36);border-radius:50%;pointer-events:none}
+.castSpotButton.selected{background:rgba(189,134,48,.92);border-color:#fff6d6;color:#101f24;
+ box-shadow:0 0 0 4px rgba(231,181,93,.22),0 4px 16px #071419c9;text-shadow:none}
+.castSpotButton.selected:before{border-color:#f4d594}
+.castSpotButton:focus-visible{outline:3px solid #fff9cb;outline-offset:7px}
+.castSpotHint{position:absolute;z-index:3;left:50%;top:162px;transform:translateX(-50%);
+ max-width:90%;width:max-content;background:#0a2028d9;border:1px solid #d5b47c88;
+ padding:7px 12px;border-radius:10px;color:#f9e5bd;font-size:11px;font-weight:750;
+ text-align:center;pointer-events:none;box-shadow:0 2px 10px #0005}
+.app.is-fighting .castSpotLayer,.app.is-fighting .castSpotHint,.app.is-catch .castSpotLayer,.app.is-catch .castSpotHint{display:none!important}
+@media(max-height:680px){.castSpotHint{top:145px;font-size:10px;padding:5px 9px}.castSpotButton{width:40px;height:40px}}
+@media(prefers-reduced-motion:reduce){.castSpotButton{transition:none}}
 </style><body><script>
 /* Mobile startup diagnostics: this tiny script executes before the large game script. */
 (function(){
@@ -164,7 +185,7 @@
   },16000);
 })();
 </script>
-<main class="app" id="app"><canvas id="scene" aria-label="Animowana scena 3D — jezioro, wędka, kołowrotek i spławik"></canvas><div class="tint"></div><div class="jump-fish-splash" id="jumpFishSplash" hidden aria-hidden="true"></div><div class="jump-fish-actor" id="jumpFishActor" hidden aria-hidden="true"><canvas id="jumpFishCanvas" class="jump-fish-canvas" width="800" height="589" aria-hidden="true"></canvas></div><canvas id="jumpFishWaterCanvas" hidden aria-hidden="true"></canvas><div class="top"><div><div class="brand">CarpRide<span>Club</span></div><div class="subtitle">FISHING 3D • V2.9.24</div></div><div class="soundTools"><div class="chip">HOL 3D · TEST</div><button type="button" class="soundToggle" id="soundToggle" aria-label="Włącz lub wyłącz dźwięki gry" aria-pressed="true">🔊 DŹWIĘK</button></div></div><div class="hero"><strong id="headline">Gotowy do zarzucenia</strong><small id="detail">Zarzuć zestaw i poczekaj na branie</small></div><div class="castProgress" id="progress"><div id="progressInner"></div></div><div class="credit">WĘDKA + KOŁOWROTEK 3D · BEZ RĄK</div><div class="controls">
+<main class="app" id="app"><canvas id="scene" aria-label="Animowana scena 3D — jezioro, wędka, kołowrotek i spławik"></canvas><div class="tint"></div><div id="castSpotLayer" class="castSpotLayer" aria-label="Wybór miejsca rzutu" hidden></div><div id="castSpotHint" class="castSpotHint" hidden>Wybierz punkt rzutu</div><div class="jump-fish-splash" id="jumpFishSplash" hidden aria-hidden="true"></div><div class="jump-fish-actor" id="jumpFishActor" hidden aria-hidden="true"><canvas id="jumpFishCanvas" class="jump-fish-canvas" width="800" height="589" aria-hidden="true"></canvas></div><canvas id="jumpFishWaterCanvas" hidden aria-hidden="true"></canvas><div class="top"><div><div class="brand">CarpRide<span>Club</span></div><div class="subtitle">FISHING 3D • V2.9.25</div></div><div class="soundTools"><div class="chip">HOL 3D · TEST</div><button type="button" class="soundToggle" id="soundToggle" aria-label="Włącz lub wyłącz dźwięki gry" aria-pressed="true">🔊 DŹWIĘK</button></div></div><div class="hero"><strong id="headline">Gotowy do zarzucenia</strong><small id="detail">Zarzuć zestaw i poczekaj na branie</small></div><div class="castProgress" id="progress"><div id="progressInner"></div></div><div class="credit">WĘDKA + KOŁOWROTEK 3D · BEZ RĄK</div><div class="controls">
 <div class="biteHud" id="biteHud" hidden><strong>BRANIE! ZACINAJ!</strong><div class="countdown"><span id="biteFill"></span></div><small>Masz 1 sekundę na reakcję</small></div>
 <div class="fightHud" id="fightHud" hidden>
  <div class="hudTitles"><b>NAPIĘCIE ŻYŁKI</b><span id="tensionVal">38%</span></div>
@@ -670,7 +691,7 @@ JUMP_FISH_FULL.sturgeon=CATCH_FISH_ART.sturgeon;
 const JUMP_VERTICAL_GAIN=2.16; // Approved lower pike/grass jump arc.
 const JUMP_SPECIES=new Set(['pike','grass','asp','sturgeon']);
 function jumpVerticalGain(){return currentFishId==='sturgeon'?1.15:currentFishId==='asp'?2.02:JUMP_VERTICAL_GAIN;}
-const RIG_AXIS_YAW=.56,RIG_ROLL=RIG_AXIS_YAW-Math.PI,RIG_TILT=-.68;
+const RIG_AXIS_YAW_BASE=.56,RIG_TILT=-.68;let RIG_AXIS_YAW=RIG_AXIS_YAW_BASE,RIG_ROLL=RIG_AXIS_YAW-Math.PI;let rigAimOffset=0,rigAimTarget=0;
 const guideY=[2.37,3.67,5.28,6.89,8.21,8.69,9.185],guideZ=[.414,.34,.268,.207,.161,.144,.128];let root=.24,bend=.06,rodSide=0,rootVel=0,bendVel=0,sideVel=0,crank=0,rotor=0,phase='idle',floatPos=[-13.2,-1.07,-19.5],castStart=0,clock=0,clockPrev=performance.now(),rippleStart=performance.now()-5000;
 let biteStart=0,waitingStart=0,fightStart=0,tension=38,catchProgress=0,tooTight=0,tooLoose=0,lineOverload=0,breakLimit=1.8,lastWarningSound=-99,reeling=false,surge=0,fishPos=[-13.2,-1.07,-19.5],fishDir=[.55,.84],fishSurge=0,fishBreach=0,fishSurfaceChance=0,splashBurst=0,finishAt=0;
 let lineLostReason='overload';
@@ -1355,14 +1376,14 @@ function drawCatfishSurface(){
   drawLine(new Float32Array(spray),[.90,.95,.98],gl.POINTS);
  }
 }
-function setPhase(next){if(next==='lost'&&phase==='fight'&&lineLostReason!=='slack')fishingAudio.lineBreak();phase=next;if(next==='win')carpPreview=false;document.getElementById('app').classList.toggle('is-fighting',next==='fight');document.getElementById('app').classList.toggle('is-catch',next==='win');fishSelect.disabled=['cast','waiting','bite','fight'].includes(next);if(next==='idle'){buttonState('🎣 ZARZUĆ ZESTAW');setLabel('Gotowy do zarzucenia','Zarzuć wędkę, poczekaj na branie i zacinaj!','Zestaw gotowy');}
+function setPhase(next){if(next==='lost'&&phase==='fight'&&lineLostReason!=='slack')fishingAudio.lineBreak();phase=next;if(next==='win')carpPreview=false;document.getElementById('app').classList.toggle('is-fighting',next==='fight');document.getElementById('app').classList.toggle('is-catch',next==='win');fishSelect.disabled=['cast','waiting','bite','fight'].includes(next);if(next==='idle'){buttonState('🎣 ZARZUĆ ZESTAW');setLabel('Gotowy do zarzucenia','Wybierz jeden z pięciu punktów na wodzie, potem zarzuć zestaw.','Zestaw gotowy');}
 else if(next==='cast'){buttonState('ZARZUCANIE…',true);setLabel('Zarzucanie zestawu…','Spławik leci po łuku','Zamach i zarzut');}
 else if(next==='waiting'){buttonState('OCZEKIWANIE NA BRANIE…',true);setLabel('Czekaj na branie…','Obserwuj spławik — za chwilę zanurzy się pod wodę','Spławik na wodzie');}
 else if(next==='bite'){buttonState('⚡ ZACINAJ!',false,'hook');setLabel('BRANIE!','Masz 1 sekundę na zacięcie!','Ryba bierze!');}
 else if(next==='fight'){buttonState('🎣 ZWIJAJ — PRZYTRZYMAJ',false,'reeling');setLabel('RYBA NA HAKU!','Holuj rybę i kontroluj napięcie żyłki','Hol — '+(isSmallCatch()?'Bardzo łatwy':fishFightDifficulty()));}
-else if(next==='win'){document.getElementById('progress').style.display='none';buttonState('🎣 ZARZUĆ PONOWNIE');setLabel('RYBA ZŁOWIONA!','Udany hol: '+FISH[currentFishId].label+' — '+formatWeight(currentFishWeight)+' · '+fishLengthCm(currentFishId,currentFishWeight)+' cm (demo bez nagród)','Udany połów');}
-else if(next==='lost'){buttonState('↻ SPRÓBUJ PONOWNIE');if(lineLostReason==='slack')setLabel('RYBA SIĘ SPIĘŁA!','Za długo utrzymywałeś luźną żyłkę. Spróbuj ponownie.','Ryba wypięła się z haczyka');else setLabel('ŻYŁKA ZERWANA!','Za długo utrzymywałeś zbyt duże napięcie. Spróbuj ponownie.','Nieudany hol');}
-else if(next==='miss'){buttonState('↻ SPRÓBUJ PONOWNIE');setLabel('NIE UDAŁO SIĘ ZACIĄĆ','Spławik zniknął — brak reakcji w ciągu 1 sekundy','Spóźnione zacięcie');}
+else if(next==='win'){document.getElementById('progress').style.display='none';buttonState('🎣 WYBIERZ MIEJSCE');setLabel('RYBA ZŁOWIONA!','Udany hol: '+FISH[currentFishId].label+' — '+formatWeight(currentFishWeight)+' · '+fishLengthCm(currentFishId,currentFishWeight)+' cm (demo bez nagród)','Udany połów');}
+else if(next==='lost'){buttonState('↻ WYBIERZ MIEJSCE');if(lineLostReason==='slack')setLabel('RYBA SIĘ SPIĘŁA!','Za długo utrzymywałeś luźną żyłkę. Spróbuj ponownie.','Ryba wypięła się z haczyka');else setLabel('ŻYŁKA ZERWANA!','Za długo utrzymywałeś zbyt duże napięcie. Spróbuj ponownie.','Nieudany hol');}
+else if(next==='miss'){buttonState('↻ WYBIERZ MIEJSCE');setLabel('NIE UDAŁO SIĘ ZACIĄĆ','Spławik zniknął — brak reakcji w ciągu 1 sekundy','Spóźnione zacięcie');}
 hudUpdate();updateCatchReveal();updateCarpPreviewUI();}
 function hook(){if(phase!=='bite')return;if(clock-biteStart>1){setPhase('miss');return;}fightStart=clock;tension=50;lineLostReason='overload';catchProgress=0;runLostThisEvent=0;finalRunTriggered=false;carpRunMarkers=bigCyprinidTier()==='light'?[]:makeCarpRunMarkers();
 fishEvent='none';eventStart=0;eventEnds=0;eventNext=isSmallCatch()?1e9:currentFishId==='carp'&&bigCyprinidTier()!=='light'?1.8+Math.random()*1.6:2.0;eventTensionBurst=0;fishJump=0;fishTurning=0;jumpStartedAt=-100;
@@ -1381,12 +1402,60 @@ function playerAction(){
  // A long press that finishes the fish must NOT be mistaken for a second tap
  // to cast again on pointerup (Safari and Chromium both dispatch click).
  if(suppressReelClick){suppressReelClick=false;return;}
- if(phase==='idle'||phase==='win'||phase==='lost'||phase==='miss'){cast();}
+ if(phase==='idle'){cast();}
+ else if(phase==='win'||phase==='lost'||phase==='miss'){setPhase('idle');} // Let player aim again before every next cast.
  else if(phase==='bite'){hook();}
  else if(phase==='fight'){/* Reel is controlled only by holding. */}
 }
 
-const fpTarget=[-13.2,-1.07,-19.5];const baseAngle=.25;
+// Aiming locations are actual water coordinates (metres in the 3D scene).
+// They were placed within the existing visible lake, not on distant land or lily meshes.
+const CAST_SPOTS=[
+ {id:1,name:'Przy trzcinach',point:[-12.63,-1.07,-6.52]},
+ {id:2,name:'Lewa strona jeziora',point:[-18.37,-1.07,-14.25]},
+ {id:3,name:'Daleka woda',point:[-29.82,-1.07,-30.48]},
+ {id:4,name:'Prawa strona jeziora',point:[-13.2,-1.07,-19.5]},
+ {id:5,name:'Okolice roślin',point:[-6.76,-1.07,-12.10]}
+];
+let selectedCastSpotIndex=3; // Keep the former casting spot as the initial default.
+let fpTarget=[...CAST_SPOTS[selectedCastSpotIndex].point];
+const castSpotLayer=document.getElementById('castSpotLayer');
+const castSpotHint=document.getElementById('castSpotHint');
+const castSpotButtons=CAST_SPOTS.map((spot,index)=>{
+ const btn=document.createElement('button');btn.type='button';btn.className='castSpotButton';
+ btn.textContent=String(spot.id);btn.setAttribute('aria-label','Punkt '+spot.id+': '+spot.name);
+ btn.addEventListener('click',()=>selectCastSpot(index));
+ castSpotLayer.appendChild(btn);return btn;
+});
+function castSpotsSelectable(){return phase==='idle'||phase==='win'||phase==='lost'||phase==='miss';}
+function selectCastSpot(index){
+ if(!castSpotsSelectable()||index<0||index>=CAST_SPOTS.length)return false;
+ selectedCastSpotIndex=index;fpTarget=[...CAST_SPOTS[index].point];
+ // A slight directional cast alignment, instead of turning the carbon blank 90 degrees.
+ // The matching CPU and GLSL rig transforms are updated smoothly each frame.
+ rigAimTarget=clamp((index-3)*.045,-.14,.08);
+ for(let i=0;i<castSpotButtons.length;i++){
+  const active=i===index;castSpotButtons[i].classList.toggle('selected',active);
+  castSpotButtons[i].setAttribute('aria-pressed',String(active));
+ }
+ castSpotHint.textContent='Punkt '+CAST_SPOTS[index].id+' · '+CAST_SPOTS[index].name;
+ return true;
+}
+selectCastSpot(selectedCastSpotIndex);
+function updateCastSpots(vp){
+ const visible=castSpotsSelectable()&&phase!=='win';
+ castSpotLayer.hidden=!visible;castSpotHint.hidden=!visible;
+ if(!visible)return;
+ for(let i=0;i<CAST_SPOTS.length;i++){
+  const pos=CAST_SPOTS[i].point;
+  const screen=projectScenePoint(vp,[pos[0],-.97,pos[2]]);
+  const btn=castSpotButtons[i];
+  if(!screen||screen[0]<.075||screen[0]>.925||screen[1]<.26||screen[1]>.80){btn.hidden=true;continue;}
+  btn.hidden=false;btn.style.left=(screen[0]*100).toFixed(3)+'%';
+  btn.style.top=(screen[1]*100).toFixed(3)+'%';
+ }
+}
+const baseAngle=.25;
 function aimRigPoint(v){
  const a=[Math.cos(RIG_AXIS_YAW),0,-Math.sin(RIG_AXIS_YAW)],
  c=Math.cos(RIG_TILT),s=Math.sin(RIG_TILT),d=a[0]*v[0]+a[2]*v[2];
@@ -1565,10 +1634,19 @@ function wirePoints(){
  }
  pts.push(target);return new Float32Array(pts.flat());
 }
-const zoom=15.3,initialYaw=.56;let yaw=initialYaw,pitch=.06,drag=null;
-// Jedyny widok: środkowe ułożenie wędki z dawnego drugiego trybu kamery.
-// Utrzymujemy jego dokładny punkt obserwacji i kąt (w tym podczas rozglądania).
-function getCamera(t){const target=[-1.8,3.7,-1];let distance=zoom,a=yaw+.20,pi=pitch+.06;return {target,eye:[target[0]+distance*Math.sin(a)*Math.cos(pi),target[1]+distance*Math.sin(pi)+.35,target[2]+distance*Math.cos(a)*Math.cos(pi)]};}
+const zoom=15.3,initialYaw=.56,initialPitch=.06;let yaw=initialYaw,pitch=initialPitch,drag=null;
+// The camera eye stays fixed at its approved v2.9.24 starting position.
+// Only the LOOK DIRECTION rotates. Previously the eye orbited a stationary target,
+// making water shading appear to slide over the lake during a swipe.
+const CAMERA_LOOK_CENTER=[-1.8,3.7,-1],CAMERA_A0=initialYaw+.20,CAMERA_P0=initialPitch+.06;
+const CAMERA_EYE=[CAMERA_LOOK_CENTER[0]+zoom*Math.sin(CAMERA_A0)*Math.cos(CAMERA_P0),
+ CAMERA_LOOK_CENTER[1]+zoom*Math.sin(CAMERA_P0)+.35,
+ CAMERA_LOOK_CENTER[2]+zoom*Math.cos(CAMERA_A0)*Math.cos(CAMERA_P0)];
+function getCamera(t){
+ const a=yaw+.20,pi=pitch+.06;
+ return {eye:CAMERA_EYE,target:[CAMERA_EYE[0]-zoom*Math.sin(a)*Math.cos(pi),
+  CAMERA_EYE[1]-zoom*Math.sin(pi)-.35,CAMERA_EYE[2]-zoom*Math.cos(a)*Math.cos(pi)]};
+}
 function drawLine(points,clr=[.82,.98,.58],mode=gl.LINE_STRIP){let n=points.length/3;const colors=new Float32Array(n*3),norm=new Float32Array(n*3),ext=new Float32Array(n*3),groups=new Float32Array(n);for(let k=0;k<n;k++){colors.set(clr,k*3);norm.set([0,0,1],k*3);groups[k]=4}setDyn(lineP,points);setDyn(lineN,norm);setDyn(lineC,colors);setDyn(lineE,ext);setDyn(lineG,groups);bindAttr(mLoc.p,lineP,3);bindAttr(mLoc.n,lineN,3);bindAttr(mLoc.c,lineC,3);bindAttr(mLoc.e,lineE,3);bindAttr(mLoc.g,lineG,1);gl.drawArrays(mode,0,n)}
 function drawRipple(){const age=(performance.now()-rippleStart)/1000;let rr=(age<2.5)?age*.46+.13:.23+.04*Math.sin(clock*2);let cen=phase==='fight'||phase==='win'||phase==='lost'?fishPos:floatPos;for(let k=0;k<3;k++){let radi=rr+k*.24;const pp=[];for(let j=0;j<=64;j++){let a=j/64*Math.PI*2;pp.push(cen[0]+Math.cos(a)*radi,-1.015+.013*Math.sin(clock*2+j*.2),cen[2]+Math.sin(a)*radi)}drawLine(new Float32Array(pp),k===0?[.69,.82,.77]:[.43,.64,.66]);}}
 function drawFishWake(){
@@ -1787,7 +1865,12 @@ function updateJumpActor(vp){
 }
 
 function render(now){const rawDt=Math.max(0,(now-clockPrev)/1000),dt=Math.min(rawDt,.15);clockPrev=now;clock+=dt;const elapsed=clock-castStart;
+// Smoothly orient the rod slightly toward the selected direction. Geometry,
+// reel, rod guides, wirePoints() and the shader use these same rig transforms.
+rigAimOffset=lerp(rigAimOffset,rigAimTarget,1-Math.exp(-dt*5.5));
+RIG_AXIS_YAW=RIG_AXIS_YAW_BASE+rigAimOffset;RIG_ROLL=RIG_AXIS_YAW-Math.PI;
 const aspect=screenSize(),cam=getCamera(clock),vp=mul(perspective(.88,aspect,.12,280),lookAt(cam.eye,cam.target));
+updateCastSpots(vp);
 let r=.21+.009*Math.sin(clock*1.55),b=.09+.006*Math.sin(clock*1.9),sideTarget=0,runAudioIntensity=0;
 if(phase==='cast'){
  if(elapsed<.65){let t=elapsed/.65;r=lerp(.21,-.12,t*t*(3-2*t));b=.09+.28*t;}
@@ -2015,9 +2098,14 @@ if(phase!=='idle'&&(phase!=='cast'||elapsed>1.9)){
  }
 }
 updateJumpActor(vp);
-window.__carprideSceneState={loaded:true,scenery,approvedBackdropLoaded:!!skyReady,phase,waterAnimated:true,rod3d:true,fl3d:true,rigRoll:RIG_ROLL,visibleGuides:7,guideY:[...guideY],floatVisible:['cast','waiting','bite','miss'].includes(phase),rotor,crank,root,bend,rodSide,rootVelocity:rootVel,bendVelocity:bendVel,float:[...floatPos],tension,catchProgress,reeling,tensionWindow:tensionWindow(),runLostThisEvent,finalRunTriggered,carpRunMarkers:carpRunMarkers.map(m=>({...m})),castReleased,castFlight:phase==='cast'?clamp01((elapsed-CAST_RELEASE_AT)/(CAST_LAND_AT-CAST_RELEASE_AT)):0,lineOverload,tooLoose,breakLimit,slackThreshold:slackThreshold(tensionWindow()),slackDanger:tension<slackThreshold(tensionWindow()),overloadDanger:reeling&&tension>dangerThreshold(tensionWindow()),lineLostReason,selectedFish:currentFishId,fishWeightGrams:currentFishWeight,fishLengthCm:fishLengthCm(currentFishId,currentFishWeight),fightTier:bigCyprinidTier(),fishEvent,fishJump,jumpSpecies:(phase==='fight'&&fishEvent==='jump'?currentFishId:null),jumpAnimationActive:!jumpFishActor.hidden||!jumpFishWaterCanvas.hidden,jumpSpriteWidthPx:jumpOverlayWidthPx,jumpScreenPosition:[parseFloat(jumpFishActor.style.left)||0,parseFloat(jumpFishActor.style.top)||0],jumpSequence,jumpProgressThreshold,jumpUsed,jumpCount,heavyChallenge:heavyFightIntensity(),greenCenter:tensionWindow().center,greenShift:tensionWindow().shift,heavyJoltMagnitude,heavyJoltActive:clock<heavyJoltUntil,fishPosition:[...fishPos],fishDirection:[...fishDir],fishBreach,fishSurfaceChance,surfaceFish3d:false,carp3d:true,carpPreview:previewFish||winFish?carpShow:false,carpTailAboveWater:carpTailBreach,carpTailCount,carpTailNext,carpTailLift,carpTailSwing,carpTailBeats,carpTailPosition:[...carpTailPosition],catfishTailAboveWater:catfishTailBreach,catfishTailCount,catfishTailNext,catfishTailLift,catfishTailSwing,catfishTailBeats,catfishTailPosition:[...catfishTailPosition],carpBoilActive:currentFishId==='carp'&&clock-carpBoilStart<1.65,carpRunCount,carpJerkCount,carpRunIntensity,rodTargetBend,rodPullDirection:[...rodPullDir],rodTipScreen:[...rodTipScreen],rodSafetyClamped,rodFishScreen:[...rodFishScreen],rodTargetSide,rodSideMatch,rodFlexProfile:'fish-position-screen-steer-v2.7.4',carpTriangles:(carpBody3D.count+carpTail3D.count)/3,grassTriangles:0,catfishTriangles:catfishTail3D.count/3,grassPhotoReady:false,grassPhotoError:'model 3D amura usunięty',grassDetailAtlasReady:false,carpAnimVersion:'v2.9.23-roster-length-tiered-fights',detailedFish3d:carpShow,detailedFishId,wake3d:phase==='fight',fps:Math.round(1/Math.max(dt,.001)),view:'pov',triangles:rod.count/3+waterInd.length/3};requestAnimationFrame(render);
+window.__carprideSceneState={loaded:true,
+ cameraEye:[...cam.eye],cameraTarget:[...cam.target],cameraYaw:yaw,cameraPitch:pitch,
+ castSpots:CAST_SPOTS.map(s=>({id:s.id,name:s.name,point:[...s.point]})),
+ selectedCastSpot:CAST_SPOTS[selectedCastSpotIndex].id,castTarget:[...fpTarget],
+ scenery,approvedBackdropLoaded:!!skyReady,phase,waterAnimated:true,rod3d:true,fl3d:true,rigRoll:RIG_ROLL,visibleGuides:7,guideY:[...guideY],floatVisible:['cast','waiting','bite','miss'].includes(phase),rotor,crank,root,bend,rodSide,rootVelocity:rootVel,bendVelocity:bendVel,float:[...floatPos],tension,catchProgress,reeling,tensionWindow:tensionWindow(),runLostThisEvent,finalRunTriggered,carpRunMarkers:carpRunMarkers.map(m=>({...m})),castReleased,castFlight:phase==='cast'?clamp01((elapsed-CAST_RELEASE_AT)/(CAST_LAND_AT-CAST_RELEASE_AT)):0,lineOverload,tooLoose,breakLimit,slackThreshold:slackThreshold(tensionWindow()),slackDanger:tension<slackThreshold(tensionWindow()),overloadDanger:reeling&&tension>dangerThreshold(tensionWindow()),lineLostReason,selectedFish:currentFishId,fishWeightGrams:currentFishWeight,fishLengthCm:fishLengthCm(currentFishId,currentFishWeight),fightTier:bigCyprinidTier(),fishEvent,fishJump,jumpSpecies:(phase==='fight'&&fishEvent==='jump'?currentFishId:null),jumpAnimationActive:!jumpFishActor.hidden||!jumpFishWaterCanvas.hidden,jumpSpriteWidthPx:jumpOverlayWidthPx,jumpScreenPosition:[parseFloat(jumpFishActor.style.left)||0,parseFloat(jumpFishActor.style.top)||0],jumpSequence,jumpProgressThreshold,jumpUsed,jumpCount,heavyChallenge:heavyFightIntensity(),greenCenter:tensionWindow().center,greenShift:tensionWindow().shift,heavyJoltMagnitude,heavyJoltActive:clock<heavyJoltUntil,fishPosition:[...fishPos],fishDirection:[...fishDir],fishBreach,fishSurfaceChance,surfaceFish3d:false,carp3d:true,carpPreview:previewFish||winFish?carpShow:false,carpTailAboveWater:carpTailBreach,carpTailCount,carpTailNext,carpTailLift,carpTailSwing,carpTailBeats,carpTailPosition:[...carpTailPosition],catfishTailAboveWater:catfishTailBreach,catfishTailCount,catfishTailNext,catfishTailLift,catfishTailSwing,catfishTailBeats,catfishTailPosition:[...catfishTailPosition],carpBoilActive:currentFishId==='carp'&&clock-carpBoilStart<1.65,carpRunCount,carpJerkCount,carpRunIntensity,rodTargetBend,rodPullDirection:[...rodPullDir],rodTipScreen:[...rodTipScreen],rodSafetyClamped,rodFishScreen:[...rodFishScreen],rodTargetSide,rodSideMatch,rodFlexProfile:'fish-position-screen-steer-v2.7.4',carpTriangles:(carpBody3D.count+carpTail3D.count)/3,grassTriangles:0,catfishTriangles:catfishTail3D.count/3,grassPhotoReady:false,grassPhotoError:'model 3D amura usunięty',grassDetailAtlasReady:false,carpAnimVersion:'v2.9.25-casting-spots-fixed-camera',detailedFish3d:carpShow,detailedFishId,wake3d:phase==='fight',fps:Math.round(1/Math.max(dt,.001)),view:'pov',triangles:rod.count/3+waterInd.length/3};requestAnimationFrame(render);
 }
-window.__carprideScene={cast,hook,debugCatch:(id,weight)=>{if(!FISH[id])return false;currentFishId=id;currentFishWeight=clamp(Math.round((weight??((FISH[id].weightLo+FISH[id].weightHi)/2))/10)*10,FISH[id].weightLo,FISH[id].weightHi);stopReeling();setPhase('win');return true;},previewCarp:()=>false,previewGrass:()=>false,previewCatfish:()=>{fishSelect.value='catfish';carpPreview=false;updateCarpPreviewUI();return false;},getState:()=>window.__carprideSceneState,debugBite:()=>{biteStart=clock;setPhase('bite')},debugFight:()=>{biteStart=clock;setPhase('bite');hook()},debugSelectFish:(id,weight)=>{
+window.__carprideScene={cast,hook,selectCastSpot,CAST_SPOTS,getCamera,projectScenePoint,screenSize,
+debugCatch:(id,weight)=>{if(!FISH[id])return false;currentFishId=id;currentFishWeight=clamp(Math.round((weight??((FISH[id].weightLo+FISH[id].weightHi)/2))/10)*10,FISH[id].weightLo,FISH[id].weightHi);stopReeling();setPhase('win');return true;},previewCarp:()=>false,previewGrass:()=>false,previewCatfish:()=>{fishSelect.value='catfish';carpPreview=false;updateCarpPreviewUI();return false;},getState:()=>window.__carprideSceneState,debugBite:()=>{biteStart=clock;setPhase('bite')},debugFight:()=>{biteStart=clock;setPhase('bite');hook()},debugSelectFish:(id,weight)=>{
  if(!FISH[id])return false;
  currentFishId=id;
  currentFishWeight=clamp(Math.round((weight||((FISH[id].weightLo+FISH[id].weightHi)/2))/10)*10,FISH[id].weightLo,FISH[id].weightHi);

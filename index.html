@@ -157,7 +157,7 @@
   },16000);
 })();
 </script>
-<main class="app" id="app"><canvas id="scene" aria-label="Animowana scena 3D — jezioro, wędka, kołowrotek i spławik"></canvas><div class="tint"></div><div class="jump-fish-splash" id="jumpFishSplash" hidden aria-hidden="true"></div><div class="jump-fish-actor" id="jumpFishActor" hidden aria-hidden="true"><canvas id="jumpFishCanvas" class="jump-fish-canvas" width="800" height="589" aria-hidden="true"></canvas></div><div class="top"><div><div class="brand">CarpRide<span>Club</span></div><div class="subtitle">FISHING 3D • V2.9.20</div></div><div class="soundTools"><div class="chip">HOL 3D · TEST</div><button type="button" class="soundToggle" id="soundToggle" aria-label="Włącz lub wyłącz dźwięki gry" aria-pressed="true">🔊 DŹWIĘK</button></div></div><div class="hero"><strong id="headline">Gotowy do zarzucenia</strong><small id="detail">Zarzuć zestaw i poczekaj na branie</small></div><div class="castProgress" id="progress"><div id="progressInner"></div></div><div class="credit">WĘDKA + KOŁOWROTEK 3D · BEZ RĄK</div><div class="controls">
+<main class="app" id="app"><canvas id="scene" aria-label="Animowana scena 3D — jezioro, wędka, kołowrotek i spławik"></canvas><div class="tint"></div><div class="jump-fish-splash" id="jumpFishSplash" hidden aria-hidden="true"></div><div class="jump-fish-actor" id="jumpFishActor" hidden aria-hidden="true"><canvas id="jumpFishCanvas" class="jump-fish-canvas" width="800" height="589" aria-hidden="true"></canvas></div><div class="top"><div><div class="brand">CarpRide<span>Club</span></div><div class="subtitle">FISHING 3D • V2.9.21</div></div><div class="soundTools"><div class="chip">HOL 3D · TEST</div><button type="button" class="soundToggle" id="soundToggle" aria-label="Włącz lub wyłącz dźwięki gry" aria-pressed="true">🔊 DŹWIĘK</button></div></div><div class="hero"><strong id="headline">Gotowy do zarzucenia</strong><small id="detail">Zarzuć zestaw i poczekaj na branie</small></div><div class="castProgress" id="progress"><div id="progressInner"></div></div><div class="credit">WĘDKA + KOŁOWROTEK 3D · BEZ RĄK</div><div class="controls">
 <div class="biteHud" id="biteHud" hidden><strong>BRANIE! ZACINAJ!</strong><div class="countdown"><span id="biteFill"></span></div><small>Masz 1 sekundę na reakcję</small></div>
 <div class="fightHud" id="fightHud" hidden>
  <div class="hudTitles"><b>NAPIĘCIE ŻYŁKI</b><span id="tensionVal">38%</span></div>
@@ -663,6 +663,7 @@ let biteStart=0,waitingStart=0,fightStart=0,tension=38,catchProgress=0,tooTight=
 let lineLostReason='overload';
 let currentFishId='perch',currentFishWeight=750,fishEvent='none',carpPreview=false,carpInspectAngle=0,eventStart=0,eventEnds=0,eventNext=0,eventTensionBurst=0,fishJump=0,fishTurning=0;
 let heavyJoltLast=-100,heavyJoltUntil=-100,heavyJoltMagnitude=0;
+let catfishRunJoltAt=-100; // A single extra shake during each extended catfish run.
 // Independent jump actor. It uses the approved art while existing WebGL water and rod keep rendering.
 let jumpStartedAt=-100,jumpOrigin=[-13.2,-1.07,-19.5],jumpDirection=1,jumpSequence=0;
 // Once per fight: a pike/grass carp jump is tied to progress, never picked at random.
@@ -709,10 +710,12 @@ function pickFishId(){if(fishSelect.value!=='random')return fishSelect.value;let
 function formatWeight(g){return g<1000?Math.round(g)+' g':(g/1000).toFixed(2).replace('.',',')+' kg';}
 function chooseFish(){currentFishId=pickFishId();const f=FISH[currentFishId];currentFishWeight=Math.round(f.weightLo+Math.random()*(f.weightHi-f.weightLo));}
 function isSmallCatch(){return currentFishWeight<=1000;}
-// Only the largest carp, grass carp and catfish receive moving targets and shock impulses.
-// Smooth mass ramp prevents a sudden difficulty cliff at an arbitrary weight.
+// All catfish use the previously toughest full-strength fight, regardless of weight.
+// The approved gradual size scaling remains unchanged for carp and grass carp.
 function heavyFightIntensity(){
- if(isSmallCatch()||!['carp','grass','catfish'].includes(currentFishId))return 0;
+ if(isSmallCatch())return 0;
+ if(currentFishId==='catfish')return 1;
+ if(currentFishId!=='carp'&&currentFishId!=='grass')return 0;
  const f=FISH[currentFishId],part=clamp((currentFishWeight-f.weightLo)/Math.max(1,f.weightHi-f.weightLo),0,1);
  const t=clamp((part-.55)/.45,0,1);
  return t*t*(3-2*t);
@@ -722,12 +725,15 @@ function tensionWindow(){
  const f=FISH[currentFishId],part=clamp((currentFishWeight-f.weightLo)/Math.max(1,f.weightHi-f.weightLo),0,1);
  const width=isSmallCatch()?50:({roach:46,perch:43-5*part,rudd:44-6*part,crucian:40-4*part,
   tench:38-5*part,pike:34-6*part,zander:34-6*part,carp:28-6*part,grass:26-6*part,
-  catfish:20-4*part}[currentFishId]||38);
+  catfish:15}[currentFishId]||38);
  const challenge=phase==='fight'?heavyFightIntensity():0;
  const age=Math.max(0,clock-fightStart);
  // Smooth, deterministic motion with no per-frame randomness or teleports.
- const speciesSpeed=currentFishId==='catfish'?.78:currentFishId==='grass'?.98:.88;
- const shift=challenge*clamp(3.7*Math.sin(age*speciesSpeed)+1.3*Math.sin(age*(speciesSpeed*1.83)),-4.8,4.8);
+ const speciesSpeed=currentFishId==='grass'?.98:.88;
+ // A visibly more restless green zone for *every* catfish (smooth, not teleporting).
+ const shift=currentFishId==='catfish'
+  ?challenge*clamp(7.0*Math.sin(age*1.04)+2.5*Math.sin(age*1.94+.35),-9.0,9.0)
+  :challenge*clamp(3.7*Math.sin(age*speciesSpeed)+1.3*Math.sin(age*(speciesSpeed*1.83)),-4.8,4.8);
  const center=50+shift;
  return {lo:center-width/2,hi:center+width/2,width,center,shift,challenge};
 }
@@ -737,8 +743,10 @@ function applyHeavyTensionJolt(power=1){
  const challenge=heavyFightIntensity();
  if(phase!=='fight'||challenge<=0||clock-heavyJoltLast<1.1)return 0;
  const band=tensionWindow();
- const desired=(3.4+3.4*power)*challenge;
- const safeMax=dangerThreshold(band)-2.5;
+ // Full-strength catfish strikes leap much farther than the previous +3..7 points.
+ // Still stop short of the overload threshold: the player can react, not lose instantly.
+ const desired=(currentFishId==='catfish'?(10.5+6.5*power):3.4+3.4*power)*challenge;
+ const safeMax=dangerThreshold(band)-(currentFishId==='catfish'?1.8:2.5);
  const bump=Math.min(desired,Math.max(0,safeMax-tension));
  if(bump<.6)return 0;
  tension=clamp(tension+bump,0,100);
@@ -751,7 +759,7 @@ function reelingRates(){
  if(isSmallCatch())return {up:17,down:14};
  const pairs={roach:[28,28],perch:[34,32],rudd:[32,31],crucian:[41,38],tench:[43,39],
   pike:[47,43],zander:[47,43],carp:[57+7*part,49+4*part],grass:[60+8*part,52+4*part],
-  catfish:[65+7*part,56+4*part]};
+  catfish:[72,60]};
  const [up,down]=pairs[currentFishId]||[40,40];return {up,down};
 }
 // Overload is a skill check, not a random punishment. Let go to recover instantly.
@@ -810,7 +818,7 @@ function advanceFightMechanics(dt,force,run,small){
 }
 
 function fishRenderScale(){const base={roach:.40,perch:.62,rudd:.50,crucian:.58,tench:.62,pike:1.04,zander:.96,carp:1.23,grass:1.26,catfish:1.66};const f=FISH[currentFishId],portion=clamp((currentFishWeight-f.weightLo)/Math.max(1,f.weightHi-f.weightLo),0,1);return base[currentFishId]*(.83+portion*.25);}
-function pickEvent(style){const choices={flutter:['dart'],dart:['dart','dart'],tench:['jerk','jerk','dart'],pike:['run','run','dart'],grass:['run','run','dart'],run:['run','run','dart'],catfish:['run','slam','slam','run']};const opts=choices[style]||['dart'];return opts[Math.floor(Math.random()*opts.length)];}
+function pickEvent(style){const choices={flutter:['dart'],dart:['dart','dart'],tench:['jerk','jerk','dart'],pike:['run','run','dart'],grass:['run','run','dart'],run:['run','run','dart'],catfish:['run','slam','slam','slam','run']};const opts=choices[style]||['dart'];return opts[Math.floor(Math.random()*opts.length)];}
 function startCarpTail(){
  carpTailStart=clock;const duration=1.1+Math.random()*.55;
  carpTailEnd=clock+duration;carpTailNext=carpTailEnd+5.6+Math.random()*7.1;
@@ -875,8 +883,13 @@ function startFishEvent(age){
  if(currentFishId==='carp'){if(fishEvent==='run')carpRunCount++;if(fishEvent==='carpStrike')carpJerkCount++;}
  // A sudden physical impulse from a big catfish; the rest builds gradually.
  if(fishEvent==='slam'){
-  tension=Math.min(91,tension+7+Math.random()*5);
-  applyHeavyTensionJolt(1.10);
+  if(currentFishId==='catfish'){
+   // One larger, bounded shock replaces the old stacked random jolt.
+   applyHeavyTensionJolt(1.22);
+  }else{
+   tension=Math.min(91,tension+7+Math.random()*5);
+   applyHeavyTensionJolt(1.10);
+  }
   bendVel+=3.1;rootVel+=.58;sideVel+=fishDir[1]*1.1;
   splashBurst=clock;
  }else if(fishEvent==='carpStrike'){
@@ -889,7 +902,11 @@ function startFishEvent(age){
  }else if(fishEvent==='dart'){
   bendVel+=.34;
  }
- if(fishEvent==='run')applyHeavyTensionJolt(.72);
+ if(fishEvent==='run'){
+  applyHeavyTensionJolt(.72);
+  // A long catfish run has an additional unpredictable tug, not only at its start.
+  catfishRunJoltAt=currentFishId==='catfish'?clock+1.10+Math.random()*.45:-100;
+ }else catfishRunJoltAt=-100;
 }
 // Scheduled breach is highest priority whenever an existing run/jerk finishes.
 // Mark it as used immediately so the fish cannot jump twice in the same fight.
@@ -1288,7 +1305,7 @@ else if(next==='miss'){buttonState('↻ SPRÓBUJ PONOWNIE');setLabel('NIE UDAŁO
 hudUpdate();updateCatchReveal();updateCarpPreviewUI();}
 function hook(){if(phase!=='bite')return;if(clock-biteStart>1){setPhase('miss');return;}fightStart=clock;tension=50;lineLostReason='overload';catchProgress=0;runLostThisEvent=0;finalRunTriggered=false;carpRunMarkers=makeCarpRunMarkers();
 fishEvent='none';eventStart=0;eventEnds=0;eventNext=isSmallCatch()?1e9:currentFishId==='carp'?1.8+Math.random()*1.6:2.0;eventTensionBurst=0;fishJump=0;fishTurning=0;jumpStartedAt=-100;
- jumpProgressThreshold=15+Math.random()*5;jumpUsed=false;jumpCount=0;heavyJoltLast=-100;heavyJoltUntil=-100;heavyJoltMagnitude=0;
+ jumpProgressThreshold=15+Math.random()*5;jumpUsed=false;jumpCount=0;heavyJoltLast=-100;heavyJoltUntil=-100;heavyJoltMagnitude=0;catfishRunJoltAt=-100;
  carpTailStart=-100;carpTailEnd=-100;carpTailLift=0;carpTailSwing=0;carpTailCount=0;
  catfishTailStart=-100;catfishTailEnd=-100;catfishTailLift=0;catfishTailSwing=0;catfishTailCount=0;
  carpTailNext=currentFishId==='carp'?clock+2.6+Math.random()*3.3:1e9;
@@ -1738,9 +1755,17 @@ if(phase==='fight'){
     sideVel+=(Math.random()<.5?-1:1)*.75;
     tension=clamp(tension+3+Math.random()*4,0,93);applyHeavyTensionJolt(.88);splashBurst=clock;
    }else startFishEvent(age);
-  } if(fishEvent!=='none'&&age>=eventEnds){
+  }
+ // The second catfish tug happens once inside a sustained run.
+ // It shares the regular overload-safe jolt logic and cannot repeat every frame.
+ if(currentFishId==='catfish'&&fishEvent==='run'&&catfishRunJoltAt>=0&&clock>=catfishRunJoltAt){
+  catfishRunJoltAt=-100;
+  const hit=applyHeavyTensionJolt(.95);
+  if(hit>0){bendVel+=1.05;rootVel+=.15;sideVel+=fishDir[1]*.32;}
+ }
+ if(fishEvent!=='none'&&age>=eventEnds){
   if(fishEvent==='jump'){splashBurst=clock;rippleStart=performance.now();}
-  fishEvent='none';
+  fishEvent='none';catfishRunJoltAt=-100;
  }
  const impact=eventPower(age);
  const smallTwitch=Math.max(0,Math.sin(age*3.9))**9;
@@ -1912,7 +1937,10 @@ window.__carprideScene={cast,hook,debugCatch:(id,weight)=>{if(!FISH[id])return f
  eventEnds=age+({jump:1.55,run:3.6,slam:.65,jerk:.60,dart:.42,carpStrike:.72}[name]||1);
  eventNext=eventEnds+5;
  if(name==='carpStrike'){bendVel+=1.9;rootVel+=.28;}
- if(['run','slam','carpStrike'].includes(name))applyHeavyTensionJolt(name==='slam'?1.1:.85);
+ if(['run','slam','carpStrike'].includes(name)){
+  applyHeavyTensionJolt(name==='slam'&&currentFishId==='catfish'?1.22:name==='slam'?1.1:.85);
+  catfishRunJoltAt=name==='run'&&currentFishId==='catfish'?clock+1.2:-100;
+ }
  return true;
 },debugWeight:(g)=>{currentFishWeight=Math.round(g)},getRoster:()=>FISH,audioState:()=>fishingAudio.getState(),debugAudio:(name)=>{fishingAudio.unlock();if(name==='splash')fishingAudio.castSplash();if(name==='whistle')fishingAudio.castWhistle();if(name==='break')fishingAudio.lineBreak();if(name==='warning')fishingAudio.warning();return fishingAudio.getState();}};setPhase('idle');requestAnimationFrame(render);
 })()

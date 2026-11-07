@@ -1,4 +1,4 @@
-<!doctype html><html lang="pl"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no"/><meta name="theme-color" content="#0c1822"/><title>CarpRide Fishing 3D — v2.9.29 — wybór przynęt spinningowych</title>
+<!doctype html><html lang="pl"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no"/><meta name="theme-color" content="#0c1822"/><title>CarpRide Fishing 3D — v2.9.30 — wybór przynęt spinningowych</title>
 <style>
 :root{font-family:system-ui,-apple-system,'Segoe UI',Arial,sans-serif;color:#f7f6f2;background:#070d14}*{box-sizing:border-box}html,body{margin:0;height:100%;overscroll-behavior:none}button{font:inherit}body{display:flex;justify-content:center;background:radial-gradient(circle at 50% 40%,#24394b,#09111b 76%)}.app{height:100dvh;width:min(100%,580px);position:relative;isolation:isolate;overflow:hidden;background:#142532}canvas{display:block;position:absolute;inset:0;width:100%;height:100%;touch-action:none}#scene{z-index:1}.tint{position:absolute;z-index:2;inset:0;pointer-events:none;background:linear-gradient(180deg,rgba(4,8,15,.69) 0%,transparent 20%,transparent 61%,rgba(4,9,15,.37) 80%,#08131dd9 100%)}.top{z-index:3;position:absolute;left:0;right:0;top:0;padding:max(env(safe-area-inset-top),15px) 18px 12px;display:flex;align-items:flex-start;justify-content:space-between;gap:12px;pointer-events:none}.brand{font-weight:950;font-size:clamp(21px,5.4vw,28px);font-style:italic;letter-spacing:-1px;text-shadow:0 2px 15px #050b10}.brand span{color:#f04d4b}.subtitle{font-size:10px;letter-spacing:2.25px;font-weight:900;text-transform:uppercase;color:#f7d29c;text-shadow:0 2px 9px #050b10;margin-top:3px}.chip{font-size:11px;font-weight:800;color:#f3e7ce;background:#101b28d9;border:1px solid #dba86480;padding:8px 12px;border-radius:14px;white-space:nowrap;box-shadow:0 8px 25px #0005}.hero{position:absolute;z-index:3;top:calc(max(env(safe-area-inset-top),15px) + 77px);left:20px;pointer-events:none;max-width:265px;text-shadow:0 1px 13px #031019}.hero strong{font-size:clamp(16px,4vw,21px);font-weight:950;display:block}.hero small{display:block;margin-top:3px;font-size:11px;font-weight:600;color:#e6edf0}.controls{position:absolute;z-index:4;bottom:calc(env(safe-area-inset-bottom) + 18px);left:17px;right:17px;display:flex;flex-direction:column;gap:12px}.status{background:#091720c9;backdrop-filter:blur(8px);border:1px solid #e0be8855;border-radius:15px;padding:12px 14px;display:flex;justify-content:space-between;align-items:center;gap:8px}.status .label{font-size:10px;font-weight:850;text-transform:uppercase;letter-spacing:1.6px;color:#f3c78f}.status .text{font-size:13px;color:#eff5f4;font-weight:750;margin-top:3px}.bars{display:flex;gap:4px;align-items:center}.bars i{height:20px;width:5px;border-radius:3px;background:#6bcf9a}.bars i:nth-child(3){height:26px}.bars i:nth-child(4){height:16px}.action{display:flex;gap:10px}.action button{min-height:57px;border-radius:15px;touch-action:none;-webkit-touch-callout:none;-webkit-user-select:none;user-select:none;cursor:pointer;border:1px solid #c6a66a;background:#0d1925e8;color:white;font-weight:900;padding:0 13px;box-shadow:0 8px 23px #0007}.action button.main{flex:1;background:linear-gradient(160deg,#eac27b,#ac7632);color:#161b1d;border:1px solid #ffe9af;font-size:15px;letter-spacing:.6px;box-shadow:0 0 26px #eca44333}.action button.main:active{transform:scale(.985)}.action button[disabled]{opacity:.55}.hint{font-size:10px;color:#e0ddcfaa;text-align:center;line-height:1.4}.error{display:none;position:absolute;inset:auto 20px 34%;z-index:10;background:#5b2029f4;color:white;border:1px solid #fd8888;border-radius:12px;padding:16px;font-size:14px;line-height:1.5}.credit{position:absolute;z-index:3;right:18px;bottom:calc(env(safe-area-inset-bottom) + 185px);font-size:10px;color:#f5edddad;pointer-events:none;letter-spacing:.4px}.castProgress{position:absolute;z-index:3;top:calc(max(env(safe-area-inset-top),15px) + 139px);left:20px;right:20px;height:3px;background:#fffff026;border-radius:10px;overflow:hidden;pointer-events:none;display:none}.castProgress div{height:100%;width:0;background:#ffdb96;box-shadow:0 0 12px #ffd376}@media(min-width:600px){.app{height:min(950px,96dvh);margin:auto;border-radius:26px;border:1px solid #70809266;box-shadow:0 15px 80px #000a}.brand{font-size:27px}}@media(max-height:700px){.hero{top:calc(max(env(safe-area-inset-top),10px) + 62px)}.credit{bottom:160px}.controls{gap:7px}.status{padding:8px 12px}.action button{min-height:47px}}
 
@@ -221,6 +221,7 @@
  letter-spacing:.2px;font-weight:900;padding:2px 5px;white-space:nowrap}
 .lureText .lureDesc{display:block;font-size:10.5px;line-height:1.32;color:#d4e2da;font-weight:540}
 .lureText .lureOdds{display:block;margin-top:5px;color:#ffcf7c;font-size:9px;line-height:1.3;font-weight:850}
+.lureText .lureTechnique{display:block;margin-top:4px;color:#b8dcd1;font-size:9px;line-height:1.25}
 .lureFooter{flex:none;padding:10px 13px 13px;background:#071723e8;border-top:1px solid #d6b67c35;display:grid;gap:8px}
 .lureOddsInfo{font-size:9px;line-height:1.34;color:#aabeb7;text-align:center}
 .lureConfirm{min-height:48px;width:100%;border-radius:13px;border:1px solid #ffdf9b;
@@ -257,7 +258,7 @@
   },16000);
 })();
 </script>
-<main class="app" id="app"><canvas id="scene" aria-label="Animowana scena 3D — jezioro, wędka, kołowrotek i spławik"></canvas><div class="tint"></div><div id="castSpotLayer" class="castSpotLayer" aria-label="Wybór miejsca rzutu" hidden></div><div id="castSpotHint" class="castSpotHint" hidden>Wybierz punkt rzutu</div><div class="jump-fish-splash" id="jumpFishSplash" hidden aria-hidden="true"></div><div class="jump-fish-actor" id="jumpFishActor" hidden aria-hidden="true"><canvas id="jumpFishCanvas" class="jump-fish-canvas" width="800" height="589" aria-hidden="true"></canvas></div><canvas id="jumpFishWaterCanvas" hidden aria-hidden="true"></canvas><div class="top"><div><div class="brand">CarpRide<span>Club</span></div><div class="subtitle">FISHING 3D • V2.9.29</div></div><div class="soundTools"><div class="chip">HOL 3D · TEST</div><button type="button" class="soundToggle" id="soundToggle" aria-label="Włącz lub wyłącz dźwięki gry" aria-pressed="true">🔊 DŹWIĘK</button></div></div><div class="hero"><strong id="headline">Gotowy do zarzucenia</strong><small id="detail">Zarzuć zestaw i poczekaj na branie</small></div><div class="castProgress" id="progress"><div id="progressInner"></div></div><div class="credit">WĘDKA + KOŁOWROTEK 3D · BEZ RĄK</div><div class="controls">
+<main class="app" id="app"><canvas id="scene" aria-label="Animowana scena 3D — jezioro, wędka, kołowrotek i spławik"></canvas><div class="tint"></div><div id="castSpotLayer" class="castSpotLayer" aria-label="Wybór miejsca rzutu" hidden></div><div id="castSpotHint" class="castSpotHint" hidden>Wybierz punkt rzutu</div><div class="jump-fish-splash" id="jumpFishSplash" hidden aria-hidden="true"></div><div class="jump-fish-actor" id="jumpFishActor" hidden aria-hidden="true"><canvas id="jumpFishCanvas" class="jump-fish-canvas" width="800" height="589" aria-hidden="true"></canvas></div><canvas id="jumpFishWaterCanvas" hidden aria-hidden="true"></canvas><div class="top"><div><div class="brand">CarpRide<span>Club</span></div><div class="subtitle">FISHING 3D • V2.9.30</div></div><div class="soundTools"><div class="chip">HOL 3D · TEST</div><button type="button" class="soundToggle" id="soundToggle" aria-label="Włącz lub wyłącz dźwięki gry" aria-pressed="true">🔊 DŹWIĘK</button></div></div><div class="hero"><strong id="headline">Gotowy do zarzucenia</strong><small id="detail">Zarzuć zestaw i poczekaj na branie</small></div><div class="castProgress" id="progress"><div id="progressInner"></div></div><div class="credit">WĘDKA + KOŁOWROTEK 3D · BEZ RĄK</div><div class="controls">
 <div class="biteHud" id="biteHud" hidden><strong>BRANIE! ZACINAJ!</strong><div class="countdown"><span id="biteFill"></span></div><small>Masz 1 sekundę na reakcję</small></div>
 <div class="fightHud" id="fightHud" hidden>
  <div class="hudTitles"><b>NAPIĘCIE ŻYŁKI</b><span id="tensionVal">38%</span></div>
@@ -792,6 +793,12 @@ const guideY=[2.37,3.67,5.28,6.89,8.21,8.69,9.185],guideZ=[.414,.34,.268,.207,.1
 let biteStart=0,waitingStart=0,fightStart=0,tension=38,catchProgress=0,tooTight=0,tooLoose=0,lineOverload=0,breakLimit=1.8,lastWarningSound=-99,reeling=false,surge=0,fishPos=[-13.2,-1.07,-19.5],fishDir=[.55,.84],fishSurge=0,fishBreach=0,fishSurfaceChance=0,splashBurst=0,finishAt=0;
 let lineLostReason='overload';
 let fishingMethod='float',selectedLureId=null,spinningHolding=false,spinProgress=0,spinTravelDuration=12,spinBiteAt=.55,spinWillBite=true,spinNearPoint=[-4.1,-1.07,-3.7],spinBitePos=[-13.2,-1.07,-19.5],fightOrigin=[-13.2,-1.07,-19.5];
+// v2.9.30: individual retrieve motion, water depth and strike opportunities per lure.
+// The lure itself is never rendered above water during retrieve: depth drives the line only.
+let spinDepthY=-1.09,spinPreviousHolding=false,spinPauseSeconds=0,spinHoldSeconds=0,
+    spinHasMoved=false,spinPauseCount=0,spinRhythm=0,spinResumeBoost=0,
+    spinFirstBiteChecked=false,spinSecondBiteChecked=false,spinPauseBiteChecked=false,
+    spinPauseBiteAttempts=0,spinLastHintAt=-100;
 let currentFishId='perch',currentFishWeight=750,fishEvent='none',carpPreview=false,carpInspectAngle=0,eventStart=0,eventEnds=0,eventNext=0,eventTensionBurst=0,fishJump=0,fishTurning=0;
 let heavyJoltLast=-100,heavyJoltUntil=-100,heavyJoltMagnitude=0;
 let catfishRunJoltAt=-100; // A single extra shake during each extended catfish run.
@@ -857,6 +864,26 @@ const SPIN_LURES={
  twister:{name:'Twister',tag:'UNIWERSALNA',description:'Przynęta gumowa niewielkich rozmiarów, która swoim ogonem prowokuje większość drapieżnych ryb, szczególnie okoni.',
        weights:{perch:55,pike:17,zander:14,asp:10,ide:3,catfish:1}}
 };
+// How each lure moves and when it encourages a strike. All depths are below
+// water height ~-1.0; these are gameplay depths, not a bathymetric lake model.
+const SPIN_RETRIEVE_PROFILES={
+ jerk:{speed:.78,holdDepth:-1.52,pauseDepth:-1.84,depthRate:2.0,sway:.052,swim:16,
+       pauseMin:.38,pauseStrike:.12,restartBonus:.25,
+       tip:'Prowadź wolno i rób krótkie pauzy.',short:'Wolno zwijaj + krótkie pauzy'},
+ sinking:{speed:.90,holdDepth:-2.42,pauseDepth:-3.13,depthRate:2.7,sway:.024,swim:12,
+       pauseMin:.55,pauseStrike:.27,restartBonus:.16,
+       tip:'Wobler schodzi głęboko. Podczas pauz szybko opada.',short:'Głębokie zwijanie + opad'},
+ floating:{speed:1.07,holdDepth:-1.14,pauseDepth:-1.105,depthRate:3.0,sway:.030,swim:20,
+       pauseMin:.30,pauseStrike:.07,restartBonus:.16,
+       tip:'Prowadź tuż pod powierzchnią; w przerwie wobler wypływa.',short:'Równe zwijanie + krótkie przerwy'},
+ shad:{speed:.86,holdDepth:-2.55,pauseDepth:-3.18,depthRate:2.6,sway:.027,swim:11,
+       pauseMin:.45,pauseStrike:.32,restartBonus:.27,
+       tip:'Krótkie podciągnięcia i pauzy, żeby jaskółka opadała.',short:'Krótkie podciągnięcia + opad'},
+ twister:{speed:1.16,holdDepth:-1.82,pauseDepth:-2.10,depthRate:2.4,sway:.073,swim:24,
+       pauseMin:.24,pauseStrike:.08,restartBonus:.13,
+       tip:'Prowadź płynnie; ogon twistera pracuje podczas zwijania.',short:'Płynne zwijanie + chwilowe przerwy'}
+};
+function spinProfile(){return SPIN_RETRIEVE_PROFILES[selectedLureId||'jerk'];}
 const SPIN_PREDATOR_IDS=['perch','pike','zander','asp','ide','catfish'];
 function spinLureWeights(){return SPIN_LURES[selectedLureId||'jerk'].weights;}
 function pickFishId(){
@@ -1193,7 +1220,8 @@ function renderLureCards(){
   card.innerHTML='<span class="lureArtBox">'+LURE_SVGS[id]+'</span>'+
     '<span class="lureText"><strong>'+lure.name+' <span class="lureTag">'+lure.tag+'</span></strong>'+
     '<span class="lureDesc">'+lure.description+'</span>'+
-    '<span class="lureOdds">Najczęściej: '+FISH[choices[0][0]].label+' '+choices[0][1]+'% · '+FISH[choices[1][0]].label+' '+choices[1][1]+'%</span></span>';
+     '<span class="lureOdds">Najczęściej: '+FISH[choices[0][0]].label+' '+choices[0][1]+'% · '+FISH[choices[1][0]].label+' '+choices[1][1]+'%</span>'+ 
+    '<span class="lureTechnique">Prowadzenie: '+SPIN_RETRIEVE_PROFILES[id].short+'</span></span>';
   card.setAttribute('aria-pressed',String(id===pendingLureId));
   card.classList.toggle('selected',id===pendingLureId);
   card.addEventListener('click',()=>{pendingLureId=id;markSelectedLure();});
@@ -1611,10 +1639,10 @@ function drawCatfishSurface(){
 }
 function setPhase(next){if(next!=='cast'&&next!=='spinRetrieve')document.getElementById('progress').style.display='none';if(next!=='spinRetrieve')spinningHolding=false;methodSelect.disabled=next!=='idle';methodRow.hidden=next!=='idle';if(next==='lost'&&phase==='fight'&&lineLostReason!=='slack')fishingAudio.lineBreak();phase=next;if(next==='win')carpPreview=false;document.getElementById('app').classList.toggle('is-fighting',next==='fight');document.getElementById('app').classList.toggle('is-catch',next==='win');fishSelect.disabled=fishingMethod==='spinning'||['cast','waiting','bite','fight','spinRetrieve'].includes(next);updateSelectedLure();if(next==='idle'){buttonState('🎣 ZARZUĆ ZESTAW');setLabel('Gotowy do zarzucenia',fishingMethod==='spinning'?(selectedLureId?'Spinning · '+SPIN_LURES[selectedLureId].name+': wybierz punkt i powoli prowadź przynętę.':'Spinning: najpierw wybierz przynętę.'):'Spławik: wybierz jeden z pięciu punktów i poczekaj na branie.','Zestaw gotowy');}
 else if(next==='cast'){buttonState('ZARZUCANIE…',true);setLabel('Zarzucanie zestawu…',fishingMethod==='spinning'?'Przynęta spinningowa leci w wybrany punkt':'Spławik leci po łuku','Zamach i zarzut');}
- else if(next==='spinRetrieve'){buttonState('🌀 PROWADŹ — PRZYTRZYMAJ',false,'reeling');setLabel('Prowadzenie przynęty','Przytrzymaj, aby powoli zwijać. Puść, by zatrzymać przynętę.','Spinning · prowadzenie');document.getElementById('progress').style.display='block';}
+ else if(next==='spinRetrieve'){buttonState('🌀 PROWADŹ — PRZYTRZYMAJ',false,'reeling');setLabel('Prowadzenie: '+SPIN_LURES[selectedLureId||'jerk'].name,spinProfile().tip,'Spinning · prowadzenie');document.getElementById('progress').style.display='block';}
  else if(next==='spinEmpty'){document.getElementById('progress').style.display='none';buttonState('↻ WYBIERZ MIEJSCE');setLabel('BRAK BRANIA','Przynęta dotarła do brzegu. Wybierz punkt i spróbuj ponownie.','Spinning · bez brania');}
 else if(next==='waiting'){buttonState('OCZEKIWANIE NA BRANIE…',true);setLabel('Czekaj na branie…','Obserwuj spławik — za chwilę zanurzy się pod wodę','Spławik na wodzie');}
-else if(next==='bite'){buttonState('⚡ ZACINAJ!',false,'hook');setLabel('BRANIE!',fishingMethod==='spinning'?'Uderzenie podczas prowadzenia! Puść przycisk i zacinaj w ciągu 1 sekundy.':'Masz 1 sekundę na zacięcie!','Ryba bierze!');}
+else if(next==='bite'){buttonState('⚡ ZACINAJ!',false,'hook');setLabel('BRANIE!',fishingMethod==='spinning'?'Uderzenie w przynętę! Puść przycisk i zacinaj w ciągu 1 sekundy.':'Masz 1 sekundę na zacięcie!','Ryba bierze!');}
 else if(next==='fight'){buttonState('🎣 ZWIJAJ — PRZYTRZYMAJ',false,'reeling');setLabel('RYBA NA HAKU!','Holuj rybę i kontroluj napięcie żyłki','Hol — '+(isSmallCatch()?'Bardzo łatwy':fishFightDifficulty()));}
 else if(next==='win'){document.getElementById('progress').style.display='none';buttonState('🎣 WYBIERZ MIEJSCE');setLabel('RYBA ZŁOWIONA!','Udany hol: '+FISH[currentFishId].label+' — '+formatWeight(currentFishWeight)+' · '+fishLengthCm(currentFishId,currentFishWeight)+' cm (demo bez nagród)','Udany połów');}
 else if(next==='lost'){buttonState('↻ WYBIERZ MIEJSCE');if(lineLostReason==='slack')setLabel('RYBA SIĘ SPIĘŁA!','Za długo utrzymywałeś luźną żyłkę. Spróbuj ponownie.','Ryba wypięła się z haczyka');else setLabel('ŻYŁKA ZERWANA!','Za długo utrzymywałeś zbyt duże napięcie. Spróbuj ponownie.','Nieudany hol');}
@@ -1916,8 +1944,13 @@ function cast(){if(phase==='cast'||phase==='fight'||phase==='bite'||phase==='wai
  carpPreview=false;updateCarpPreviewUI();stopReeling();
  chooseFish();
  spinProgress=0;
+  // A jerk is retrieved more slowly; a twister more quickly, with one hold button.
   spinTravelDuration=clamp(Math.hypot(fpTarget[0]-spinNearPoint[0],fpTarget[2]-spinNearPoint[2])/2.1,8,15);
-  spinBiteAt=.26+Math.random()*.54;spinWillBite=Math.random()<.83;
+  spinBiteAt=.28+Math.random()*.43;spinWillBite=true;
+  spinDepthY=-1.09;spinPreviousHolding=false;spinPauseSeconds=0;spinHoldSeconds=0;
+  spinHasMoved=false;spinPauseCount=0;spinRhythm=0;spinResumeBoost=0;
+  spinFirstBiteChecked=false;spinSecondBiteChecked=false;spinPauseBiteChecked=false;
+  spinPauseBiteAttempts=0;spinLastHintAt=-100;
  castReleased=false;castReleasePos=null;castWhooshPlayed=false;
  fishingAudio.unlock();
  castStart=clock;document.getElementById('progress').style.display='block';setPhase('cast');
@@ -2102,6 +2135,73 @@ function updateJumpActor(vp){
  }
 }
 
+// Different retrieve profiles, but a single accessible press-and-release control.
+function beginSpinBite(){
+ spinBitePos=[...floatPos];spinWillBite=false;biteStart=clock;setPhase('bite');
+}
+function updateSpinRetrieve(dt){
+ const p=spinProfile(),holding=spinningHolding;
+ if(holding!==spinPreviousHolding){
+  if(holding){
+   // An actual pause after retrieving creates a brief strike opportunity on restart.
+   if(spinHasMoved&&spinPauseSeconds>=p.pauseMin&&spinPauseSeconds<=4.5){
+    spinResumeBoost=1.35;spinRhythm=clamp(spinRhythm+.24,0,.50);spinPauseCount++;
+   }else spinResumeBoost=0;
+   spinPauseSeconds=0;spinPauseBiteChecked=false;
+  }else{spinPauseSeconds=0;spinPauseBiteChecked=false;}
+  spinPreviousHolding=holding;
+ }
+ if(holding){
+  spinHoldSeconds+=dt;
+  spinProgress=clamp01(spinProgress+dt/spinTravelDuration*p.speed);
+  crank+=dt*4.1*p.speed;rotor+=dt*4.1*p.speed;
+  spinHasMoved=spinHasMoved||spinProgress>.025;
+  spinResumeBoost=Math.max(0,spinResumeBoost-dt);
+ }else{
+  spinHoldSeconds=0;spinPauseSeconds+=dt;
+ }
+ spinRhythm=Math.max(0,spinRhythm-dt*.026);
+ // On a pause, a sinking lure falls, a floating wobbler rises toward the surface.
+ // The physical lure stays under the water and is deliberately not drawn in WebGL.
+ const desiredDepth=holding?p.holdDepth:p.pauseDepth;
+ spinDepthY+=(desiredDepth-spinDepthY)*(1-Math.exp(-dt*p.depthRate));
+ spinDepthY=Math.min(-1.10,spinDepthY);
+ const u=spinProgress;
+ const sway=holding?p.sway:0;
+ floatPos=[lerp(fpTarget[0],spinNearPoint[0],u)+sway*Math.sin(u*p.swim*3),
+           spinDepthY+(holding?.012*Math.sin(u*p.swim*4):0),
+           lerp(fpTarget[2],spinNearPoint[2],u)+sway*.65*Math.sin(u*p.swim*2)];
+ document.getElementById('progressInner').style.width=(100*u).toFixed(1)+'%';
+ // Occasional pause bites for lures that sink strongly (wobbler and shad).
+ // Limit these trials to two per cast so stopping endlessly cannot force a bite.
+ if(!holding&&!spinPauseBiteChecked&&spinPauseBiteAttempts<2&&
+    spinPauseSeconds>=p.pauseMin+.20&&u>=Math.max(.18,spinBiteAt-.14)&&u<.92){
+  spinPauseBiteChecked=true;spinPauseBiteAttempts++;
+  if(Math.random()<p.pauseStrike+Math.min(.12,spinRhythm*.22)){beginSpinBite();return;}
+ }
+ if(holding&&!spinFirstBiteChecked&&u>=spinBiteAt){
+  spinFirstBiteChecked=true;
+  if(Math.random()<clamp(.57+spinRhythm*.35+(spinResumeBoost>0?p.restartBonus:0),0,.94)){
+   beginSpinBite();return;
+  }
+ }
+ if(holding&&!spinSecondBiteChecked&&u>=Math.min(.94,spinBiteAt+.24)){
+  spinSecondBiteChecked=true;
+  if(Math.random()<clamp(.34+spinRhythm*.30+(spinResumeBoost>0?p.restartBonus*.8:0),0,.75)){
+   beginSpinBite();return;
+  }
+ }
+ if(u>=1){finishAt=clock;setPhase('spinEmpty');stopReeling();return;}
+ if(clock-spinLastHintAt>.35){
+  const action=holding?'Zwijanie — przynęta pracuje':'Pauza — '+
+   (selectedLureId==='floating'?'wobler wypływa pod powierzchnię':
+     (selectedLureId==='shad'||selectedLureId==='sinking')?'przynęta opada głębiej':'przynęta powoli opada');
+  setLabel('Prowadzenie: '+SPIN_LURES[selectedLureId||'jerk'].name,
+   action+' · '+p.tip,'Spinning · '+Math.round(u*100)+'% drogi');
+  spinLastHintAt=clock;
+ }
+}
+
 function render(now){const rawDt=Math.max(0,(now-clockPrev)/1000),dt=Math.min(rawDt,.15);clockPrev=now;clock+=dt;const elapsed=clock-castStart;
 // Smoothly orient the rod slightly toward the selected direction. Geometry,
 // reel, rod guides, wirePoints() and the shader use these same rig transforms.
@@ -2138,17 +2238,7 @@ if(phase==='cast'){
  document.getElementById('progressInner').style.width=Math.min(100,elapsed/2.15*100)+'%';
 }else if(phase==='bite'&&fishingMethod==='spinning')floatPos=[...spinBitePos];
  else if(phase!=='spinRetrieve')floatPos=[...fpTarget];
- if(phase==='spinRetrieve'){
-  // Smooth retrieve. Releasing the button pauses horizontal movement (no teleport).
-  if(spinningHolding){spinProgress=clamp01(spinProgress+dt/spinTravelDuration);crank+=dt*4.1;rotor+=dt*4.1;}
-  const u=spinProgress;
-  floatPos=[lerp(fpTarget[0],spinNearPoint[0],u)+.08*Math.sin(u*38),
-            -1.35+.035*Math.sin(u*52),
-            lerp(fpTarget[2],spinNearPoint[2],u)+.06*Math.sin(u*34)];
-  document.getElementById('progressInner').style.width=(100*u).toFixed(1)+'%';
-  if(spinWillBite&&u>=spinBiteAt){spinBitePos=[...floatPos];biteStart=clock;setPhase('bite');}
-  else if(u>=1){finishAt=clock;setPhase('spinEmpty');stopReeling();}
- }
+ if(phase==='spinRetrieve')updateSpinRetrieve(dt);
 if(phase==='waiting' &&clock-waitingStart>2.3){biteStart=clock;setPhase('bite');}
 if(phase==='bite'){
  floatPos[1]-=1.28*clamp01((clock-biteStart)/.35);
@@ -2360,7 +2450,9 @@ window.__carprideSceneState={loaded:true,
  cameraEye:[...cam.eye],cameraTarget:[...cam.target],cameraYaw:yaw,cameraPitch:pitch,
  castSpots:CAST_SPOTS.map(s=>({id:s.id,name:s.name,point:[...s.point]})),
  selectedCastSpot:CAST_SPOTS[selectedCastSpotIndex].id,castTarget:[...fpTarget],
- fishingMethod,selectedLureId,selectedLureName:selectedLureId?SPIN_LURES[selectedLureId].name:null,lureWeights:fishingMethod==='spinning'?{...spinLureWeights()}:null,lureMenuOpen:!lureModal.hidden,spinningHolding,spinProgress,spinTravelDuration,spinBiteAt,spinWillBite,spinRemainingPercent:Math.round((1-spinProgress)*100),fightOrigin:[...fightOrigin],spinBitePosition:[...spinBitePos],
+ fishingMethod,selectedLureId,selectedLureName:selectedLureId?SPIN_LURES[selectedLureId].name:null,lureWeights:fishingMethod==='spinning'?{...spinLureWeights()}:null,lureMenuOpen:!lureModal.hidden,spinningHolding,spinProgress,spinTravelDuration,spinBiteAt,spinWillBite,
+  spinDepthY,spinPauseSeconds,spinPauseCount,spinRhythm,spinFirstBiteChecked,spinSecondBiteChecked,
+  spinRetrieveProfile:selectedLureId?{...spinProfile()}:null,spinRemainingPercent:Math.round((1-spinProgress)*100),fightOrigin:[...fightOrigin],spinBitePosition:[...spinBitePos],
  scenery,approvedBackdropLoaded:!!skyReady,phase,waterAnimated:true,rod3d:true,fl3d:fishingMethod==='float',lure3d:fishingMethod==='spinning',rigRoll:RIG_ROLL,visibleGuides:7,guideY:[...guideY],floatVisible:['cast','waiting','bite','miss'].includes(phase),rotor,crank,root,bend,rodSide,rootVelocity:rootVel,bendVelocity:bendVel,float:[...floatPos],tension,catchProgress,reeling,tensionWindow:tensionWindow(),runLostThisEvent,finalRunTriggered,carpRunMarkers:carpRunMarkers.map(m=>({...m})),castReleased,castFlight:phase==='cast'?clamp01((elapsed-CAST_RELEASE_AT)/(CAST_LAND_AT-CAST_RELEASE_AT)):0,lineOverload,tooLoose,breakLimit,slackThreshold:slackThreshold(tensionWindow()),slackDanger:tension<slackThreshold(tensionWindow()),overloadDanger:reeling&&tension>dangerThreshold(tensionWindow()),lineLostReason,selectedFish:currentFishId,fishWeightGrams:currentFishWeight,fishLengthCm:fishLengthCm(currentFishId,currentFishWeight),fightTier:bigCyprinidTier(),fishEvent,fishJump,jumpSpecies:(phase==='fight'&&fishEvent==='jump'?currentFishId:null),jumpAnimationActive:!jumpFishActor.hidden||!jumpFishWaterCanvas.hidden,jumpSpriteWidthPx:jumpOverlayWidthPx,jumpScreenPosition:[parseFloat(jumpFishActor.style.left)||0,parseFloat(jumpFishActor.style.top)||0],jumpSequence,jumpProgressThreshold,jumpUsed,jumpCount,heavyChallenge:heavyFightIntensity(),greenCenter:tensionWindow().center,greenShift:tensionWindow().shift,heavyJoltMagnitude,heavyJoltActive:clock<heavyJoltUntil,fishPosition:[...fishPos],fishDirection:[...fishDir],fishBreach,fishSurfaceChance,surfaceFish3d:false,carp3d:true,carpPreview:previewFish||winFish?carpShow:false,carpTailAboveWater:carpTailBreach,carpTailCount,carpTailNext,carpTailLift,carpTailSwing,carpTailBeats,carpTailPosition:[...carpTailPosition],catfishTailAboveWater:catfishTailBreach,catfishTailCount,catfishTailNext,catfishTailLift,catfishTailSwing,catfishTailBeats,catfishTailPosition:[...catfishTailPosition],carpBoilActive:currentFishId==='carp'&&clock-carpBoilStart<1.65,carpRunCount,carpJerkCount,carpRunIntensity,rodTargetBend,rodPullDirection:[...rodPullDir],rodTipScreen:[...rodTipScreen],rodSafetyClamped,rodFishScreen:[...rodFishScreen],rodTargetSide,rodSideMatch,rodFlexProfile:'fish-position-screen-steer-v2.7.4',carpTriangles:(carpBody3D.count+carpTail3D.count)/3,grassTriangles:0,catfishTriangles:catfishTail3D.count/3,grassPhotoReady:false,grassPhotoError:'model 3D amura usunięty',grassDetailAtlasReady:false,carpAnimVersion:'v2.9.27-spinning-mvp-fixed-camera',detailedFish3d:carpShow,detailedFishId,wake3d:phase==='fight',fps:Math.round(1/Math.max(dt,.001)),view:'pov',triangles:rod.count/3+waterInd.length/3};requestAnimationFrame(render);
 }
 window.__carprideScene={cast,hook,selectCastSpot,CAST_SPOTS,getCamera,projectScenePoint,screenSize,
